@@ -53,7 +53,7 @@ bash navsim/download/download_trainval.sh
 bash navsim/download/download_test.sh
 ```
 #### Waymo E2E Dataset
-The Waymo end-to-end driving dataset can be downloaded at [here](https://waymo.com/open/download/). You can use the code `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_traj_project_visualization.py` in the `tools/visualization` folder to visualize the data.
+The Waymo end-to-end driving dataset can be downloaded at [here](https://waymo.com/open/download/). You can use the code `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the data.
 
 #### nuScenes Dataset
 
@@ -95,7 +95,7 @@ To organize the image data and support random access, we first cache the image d
 ```bash
 bash scripts/run_waymo_e2e_image_extraction.bash
 ```
-You can perform the following command to preprocess the Waymo E2E dataset. Please also first revise your path and data split in the config.
+You can perform the following command to preprocess the Waymo E2E dataset. Please also first revise your path and data split in the config and set the `INCLUDE_COT`.
 ```bash
 bash scripts/run_waymo_e2e_preprocessing.bash
 ```

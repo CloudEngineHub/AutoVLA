@@ -60,18 +60,19 @@ The waymo end-to-end driving dataset can be downloaded at [here](https://waymo.c
 <span style="color:red">[TBD]</span>
 
 ### 2. Conda Environment Setup
-
+You can perform the following command to create a conda environment and install the required dependencies.
 ```bash
-conda env create --name navsim -f environment.yml
-conda activate navsim
-pip install -e .
+conda env create -f environment.yml
+conda activate autovla
+pip install -e . --no-warn-conflicts
+bash install.sh
 ```
 
 ### 3. Navsim Setup
-We have included the navsim code in this repo, and you can go to the `navsim` folder to install it. You can also refer to [here](https://github.com/autonomousvision/navsim/blob/v2.0/docs/install.md) to set up the navsim devkit. 
+We have included the navsim code in this repo, and you can go to the `navsim` folder to install it. You can also refer to [here](https://github.com/autonomousvision/navsim/blob/v2.0/docs/install.md) to set up the navsim devkit, but please ensure version compatibility for the dependencies.
 ```bash
 cd navsim
-pip install -e .
+pip install -e . --no-warn-conflicts
 ```
 Remember to set the navsim required environment variables:
 ```bash

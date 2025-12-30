@@ -3,7 +3,7 @@ export TOKENIZERS_PARALLELISM=false
 export TF_CPP_MIN_LOG_LEVEL=3
 export TF_ENABLE_ONEDNN_OPTS=0
 
-INCLUDE_COT=false
+INCLUDE_COT=true
 CONFIG="config/dataset/qwen2.5-vl-72B-nuplan.yaml"
 OUTPUT_DIR="temp"
 

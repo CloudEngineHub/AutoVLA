@@ -1,6 +1,7 @@
 <div align="center">
 
-# <img src="images/AutoVLA-Logo.png" width="35" height="35" style="vertical-align: bottom; margin-right: 10px;"> AutoVLA
+# <img src="images/AutoVLA-Logo.png" width="35" height="35" style="vertical-align: middle; margin-right: 10px;"> AutoVLA 
+<!-- <br> <span style="font-size: 0.5em; font-weight: normal;">A Vision-Language-Action Model for End-to-End Autonomous Driving with Adaptive Reasoning and Reinforcement Fine-Tuning</span> -->
 
 [![website](https://img.shields.io/badge/Website-Explore%20Now-blueviolet?style=flat&logo=google-chrome)](https://autovla.github.io/)
 [![paper](https://img.shields.io/badge/arXiv-2506.13757-B31B1B.svg?style=flat&logo=arxiv)](https://arxiv.org/abs/2506.13757)
@@ -15,7 +16,7 @@
 
 [Zewei Zhou](https://zewei-zhou.github.io/)\*</sup>, [Tianhui Cai](https://www.tianhui-vicky.com/)\*</sup>, [Seth Z. Zhao](https://sethzhao506.github.io/), [Yun Zhang](https://handsomeyun.github.io/), [Zhiyu Huang](https://mczhi.github.io/)<sup>†</sup>, [Bolei Zhou](https://boleizhou.github.io/), [Jiaqi Ma](https://mobility-lab.seas.ucla.edu/about/)
 
-University of California, Los Angeles - <sup>*</sup> Equal contribution, <sup>†</sup> Project leader
+University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>†</sup> Project leader
 
 ![teaser](images/AutoVLA_framework.png)
 
@@ -53,14 +54,21 @@ bash navsim/download/download_trainval.sh
 bash navsim/download/download_test.sh
 ```
 #### Waymo E2E Dataset
-The Waymo end-to-end driving dataset can be downloaded at [here](https://waymo.com/open/download/). You can use the code `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the data.
+The waymo end-to-end driving dataset can be downloaded at [here](https://waymo.com/open/download/). 
 
 #### nuScenes Dataset
+<span style="color:red">[TBD]</span>
 
-### 2. Conda Environment and Dependencies Setup
+### 2. Conda Environment Setup
+
+```bash
+conda env create --name navsim -f environment.yml
+conda activate navsim
+pip install -e .
+```
 
 ### 3. Navsim Setup
-Refer to [here](https://github.com/autonomousvision/navsim/blob/v2.0/docs/install.md) to set up the navsim devkit.
+We have included the navsim code in this repo, and you can go to the `navsim` folder to install it. You can also refer to [here](https://github.com/autonomousvision/navsim/blob/v2.0/docs/install.md) to set up the navsim devkit. 
 ```bash
 cd navsim
 pip install -e .
@@ -74,11 +82,11 @@ export NAVSIM_DEVKIT_ROOT="$HOME/navsim_workspace/navsim"
 export OPENSCENE_DATA_ROOT="$HOME/navsim_workspace/dataset"
 ```
 ### 4. Pretrained Model Downloading
-We use the `Qwen2.5-VL` model series as the pretrained LLM in the vision-language-action model and chain-of-thought (CoT) annotation model.
-
-We use the 72B model in CoT annotation, and you can choose `Qwen2.5-VL-72B-Instruct` or `Qwen2.5-VL-72B-Instruct-AWQ` based on your device.
-
-We use the `Qwen2.5-VL-3B-Instruct` in the AutoVLA model.
+We use the `Qwen2.5-VL` model series as the pretrained LLM in the vision-language-action model and chain-of-thought (CoT) annotation model. You can run the command to download the pretrained model.
+```bash
+bash scripts/download_qwen.sh
+```
+Specifically, we use the 72B model in CoT annotation, and you can choose `Qwen2.5-VL-72B-Instruct` or `Qwen2.5-VL-72B-Instruct-AWQ` based on your device. We use the `Qwen2.5-VL-3B-Instruct` in the AutoVLA model.
 
 <!-- Retrieve `Qwen2.5-VL-3B-Instruct` from Hugging Face. -->
 
@@ -86,7 +94,7 @@ We use the `Qwen2.5-VL-3B-Instruct` in the AutoVLA model.
 ## Getting Started
 ### 1. Dataset Preprocessing
 #### nuPlan Dataset
-You can perform the command to preprocess the nuPlan dataset. Please first revise your path and data split in the config. The `INCLUDE_COT` setting in the bash determines whether to launch the CoT reasoning annotation.
+You can perform the command to preprocess the nuPlan dataset. Please first revise your path and data split (refer to [here](https://github.com/autonomousvision/navsim/blob/v2.0/docs/splits.md)) in the config. The `INCLUDE_COT` setting in the bash determines whether to launch the CoT reasoning annotation.
 ```bash
 bash scripts/run_nuplan_preprocessing.bash
 ```
@@ -99,13 +107,19 @@ You can perform the following command to preprocess the Waymo E2E dataset. Pleas
 ```bash
 bash scripts/run_waymo_e2e_preprocessing.bash
 ```
+You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the waymo data after preprocessing.
 #### nuScenes Dataset
+<span style="color:red">[TBD]</span>
 
 ### 2. Action Codebook Creation
+<span style="color:red">[TBD]</span>
 
 ### 3. Supervised Fine-tuning (SFT)
+<span style="color:red">[TBD]</span>
 
 ### 4. Reinforcement Fine-tuning (RFT)
+
+### 5. Navsim Testing
 
 ## Citation
 If you find this repository useful for your research, please consider giving us a star 🌟 and citing our paper.

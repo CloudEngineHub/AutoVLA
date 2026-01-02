@@ -101,7 +101,7 @@ if __name__ == "__main__":
             print(f"Pre_generated_dir {args.pre_generated_dir} does not exist.")
 
     # Load configuration.
-    config = load_config(f"{args.config}")
+    config = load_config(f"./config/{args.config}.yaml")
     
     # Initialize the processor and dataset.
     processor = AutoProcessor.from_pretrained(config['pretrained_model_path'], use_fast=True)

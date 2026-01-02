@@ -1,5 +1,3 @@
-# TODO: Move & rename this file for common usage (not specific for PDM)
-# TODO: Remove @classmethod + @property decorators (deprecated in Python 3.13)
 from enum import IntEnum
 
 
@@ -107,13 +105,6 @@ class StateIndex:
         return slice(cls._ACCELERATION_X, cls._ACCELERATION_Y + 1)
 
 
-class PointIndex(IntEnum):
-    """Index mapping for (x,y) arrays."""
-
-    X = 0
-    Y = 1
-
-
 class SE2Index(IntEnum):
     """Index mapping for state se2 (x,y,θ) arrays."""
 
@@ -167,8 +158,6 @@ class MultiMetricIndex(IntEnum):
 
     NO_COLLISION = 0
     DRIVABLE_AREA = 1
-    TRAFFIC_LIGHT_COMPLIANCE = 2
-    DRIVING_DIRECTION = 3
 
 
 class WeightedMetricIndex(IntEnum):
@@ -176,6 +165,5 @@ class WeightedMetricIndex(IntEnum):
 
     PROGRESS = 0
     TTC = 1
-    LANE_KEEPING = 2
-    HISTORY_COMFORT = 3
-    TWO_FRAME_EXTENDED_COMFORT = 4
+    COMFORTABLE = 2
+    DRIVING_DIRECTION = 3

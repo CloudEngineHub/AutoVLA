@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.typing as npt
+
 from nuplan.common.actor_state.ego_state import EgoState
 from nuplan.common.actor_state.state_representation import TimeDuration, TimePoint
 from nuplan.planning.simulation.simulation_time_controller.simulation_iteration import SimulationIteration

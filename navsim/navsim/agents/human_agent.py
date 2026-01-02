@@ -1,7 +1,7 @@
 from nuplan.planning.simulation.trajectory.trajectory_sampling import TrajectorySampling
 
 from navsim.agents.abstract_agent import AbstractAgent
-from navsim.common.dataclasses import AgentInput, Scene, SensorConfig, Trajectory
+from navsim.common.dataclasses import AgentInput, Trajectory, Scene, SensorConfig
 
 
 class HumanAgent(AbstractAgent):
@@ -21,10 +21,12 @@ class HumanAgent(AbstractAgent):
 
     def name(self) -> str:
         """Inherited, see superclass."""
+
         return self.__class__.__name__
 
     def initialize(self) -> None:
         """Inherited, see superclass."""
+        pass
 
     def get_sensor_config(self) -> SensorConfig:
         """Inherited, see superclass."""

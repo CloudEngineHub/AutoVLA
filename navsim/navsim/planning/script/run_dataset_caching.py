@@ -1,20 +1,21 @@
-import logging
-import os
-import uuid
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+import logging
+import uuid
+import os
 
 import hydra
-import pytorch_lightning as pl
 from hydra.utils import instantiate
+from omegaconf import DictConfig
+import pytorch_lightning as pl
+
 from nuplan.planning.utils.multithreading.worker_pool import WorkerPool
 from nuplan.planning.utils.multithreading.worker_utils import worker_map
-from omegaconf import DictConfig
 
-from navsim.agents.abstract_agent import AbstractAgent
-from navsim.common.dataclasses import SceneFilter, SensorConfig
-from navsim.common.dataloader import SceneLoader
 from navsim.planning.training.dataset import Dataset
+from navsim.common.dataloader import SceneLoader
+from navsim.common.dataclasses import SceneFilter, SensorConfig
+from navsim.agents.abstract_agent import AbstractAgent
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +23,7 @@ CONFIG_PATH = "config/training"
 CONFIG_NAME = "default_training"
 
 
-def cache_features(
-    args: List[Dict[str, Union[List[str], DictConfig]]]
-) -> List[Optional[Any]]:
+def cache_features(args: List[Dict[str, Union[List[str], DictConfig]]]) -> List[Optional[Any]]:
     """
     Helper function to cache features and targets of learnable agent.
     :param args: arguments for caching
@@ -43,15 +42,11 @@ def cache_features(
     scene_filter.tokens = tokens
     scene_loader = SceneLoader(
         sensor_blobs_path=Path(cfg.sensor_blobs_path),
-        navsim_blobs_path=Path(cfg.navsim_blobs_path),
         data_path=Path(cfg.navsim_log_path),
-        synthetic_scenes_path=Path(cfg.synthetic_scenes_path),
         scene_filter=scene_filter,
         sensor_config=agent.get_sensor_config(),
     )
-    logger.info(
-        f"Extracted {len(scene_loader.tokens)} scenarios for thread_id={thread_id}, node_id={node_id}."
-    )
+    logger.info(f"Extracted {len(scene_loader.tokens)} scenarios for thread_id={thread_id}, node_id={node_id}.")
 
     dataset = Dataset(
         scene_loader=scene_loader,
@@ -79,18 +74,13 @@ def main(cfg: DictConfig) -> None:
     scene_filter: SceneFilter = instantiate(cfg.train_test_split.scene_filter)
     data_path = Path(cfg.navsim_log_path)
     sensor_blobs_path = Path(cfg.sensor_blobs_path)
-    navsim_blobs_path = Path(cfg.navsim_blobs_path)
     scene_loader = SceneLoader(
         sensor_blobs_path=sensor_blobs_path,
-        navsim_blobs_path=navsim_blobs_path,
         data_path=data_path,
-        synthetic_scenes_path=Path(cfg.synthetic_scenes_path),
         scene_filter=scene_filter,
         sensor_config=SensorConfig.build_no_sensors(),
     )
-    logger.info(
-        f"Extracted {len(scene_loader)} scenarios for training/validation dataset"
-    )
+    logger.info(f"Extracted {len(scene_loader)} scenarios for training/validation dataset")
 
     data_points = [
         {
@@ -102,9 +92,7 @@ def main(cfg: DictConfig) -> None:
     ]
 
     _ = worker_map(worker, cache_features, data_points)
-    logger.info(
-        f"Finished caching {len(scene_loader)} scenarios for training/validation dataset"
-    )
+    logger.info(f"Finished caching {len(scene_loader)} scenarios for training/validation dataset")
 
 
 if __name__ == "__main__":

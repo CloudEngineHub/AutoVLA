@@ -126,7 +126,7 @@ class VlaAgent(AbstractAgent):
         :param lr: learning rate during training.
         :param checkpoint_path: optional checkpoint path as string, defaults to None
         """
-        super().__init__(trajectory_sampling=trajectory_sampling)
+        super().__init__()
         self._trajectory_sampling = trajectory_sampling
 
     def initialize(self) -> None:

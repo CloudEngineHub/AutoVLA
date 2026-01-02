@@ -1,12 +1,10 @@
 from typing import Dict
-
 import numpy as np
 import torch
 import torch.nn as nn
-from nuplan.planning.simulation.trajectory.trajectory_sampling import TrajectorySampling
 
-from navsim.agents.transfuser.transfuser_backbone import TransfuserBackbone
 from navsim.agents.transfuser.transfuser_config import TransfuserConfig
+from navsim.agents.transfuser.transfuser_backbone import TransfuserBackbone
 from navsim.agents.transfuser.transfuser_features import BoundingBox2DIndex
 from navsim.common.enums import StateSE2Index
 
@@ -14,10 +12,9 @@ from navsim.common.enums import StateSE2Index
 class TransfuserModel(nn.Module):
     """Torch module for Transfuser."""
 
-    def __init__(self, trajectory_sampling: TrajectorySampling, config: TransfuserConfig):
+    def __init__(self, config: TransfuserConfig):
         """
         Initializes TransFuser torch module.
-        :param trajectory_sampling: trajectory sampling specification.
         :param config: global config dataclass of TransFuser.
         """
 
@@ -57,10 +54,7 @@ class TransfuserModel(nn.Module):
                 bias=True,
             ),
             nn.Upsample(
-                size=(
-                    config.lidar_resolution_height // 2,
-                    config.lidar_resolution_width,
-                ),
+                size=(config.lidar_resolution_height // 2, config.lidar_resolution_width),
                 mode="bilinear",
                 align_corners=False,
             ),
@@ -82,7 +76,7 @@ class TransfuserModel(nn.Module):
         )
 
         self._trajectory_head = TrajectoryHead(
-            num_poses=trajectory_sampling.num_poses,
+            num_poses=config.trajectory_sampling.num_poses,
             d_ffn=config.tf_d_ffn,
             d_model=config.tf_d_model,
         )
@@ -91,10 +85,7 @@ class TransfuserModel(nn.Module):
         """Torch module forward pass."""
 
         camera_feature: torch.Tensor = features["camera_feature"]
-        if self._config.latent:
-            lidar_feature = None
-        else:
-            lidar_feature: torch.Tensor = features["lidar_feature"]
+        lidar_feature: torch.Tensor = features["lidar_feature"]
         status_feature: torch.Tensor = features["status_feature"]
 
         batch_size = status_feature.shape[0]

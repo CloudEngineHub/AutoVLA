@@ -1,15 +1,16 @@
-import io
 from typing import Any, Callable, List, Tuple
+import io
 
-import matplotlib.pyplot as plt
-from PIL import Image
 from tqdm import tqdm
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
 
 from navsim.agents.abstract_agent import AbstractAgent
-from navsim.common.dataclasses import Scene
+from navsim.common.dataclasses import Scene, Trajectory
+from navsim.visualization.config import BEV_PLOT_CONFIG, TRAJECTORY_CONFIG, CAMERAS_PLOT_CONFIG
 from navsim.visualization.bev import add_configured_bev_on_ax, add_trajectory_to_bev_ax
-from navsim.visualization.camera import add_annotations_to_camera_ax, add_camera_ax, add_lidar_to_camera_ax
-from navsim.visualization.config import BEV_PLOT_CONFIG, CAMERAS_PLOT_CONFIG, TRAJECTORY_CONFIG
+from navsim.visualization.camera import add_annotations_to_camera_ax, add_lidar_to_camera_ax, add_camera_ax
 
 
 def configure_bev_ax(ax: plt.Axes) -> plt.Axes:
@@ -216,6 +217,99 @@ def frame_plot_to_pil(
 
     return images
 
+
+def plot_cameras_frame_with_bev_agent(
+        scene: Scene, frame_idx: int, 
+        agent_trajectory: Trajectory) -> Tuple[plt.Figure, Any]:
+    """
+    Plots 8x cameras and birds-eye-view visualization in 3x3 grid. 
+    Plots agent and human trajectory in birds-eye-view visualization
+    :param scene: navsim scene dataclass
+    :param frame_idx: index of selected frame
+    :return: figure and ax object of matplotlib
+    """
+    human_trajectory = scene.get_future_trajectory()
+
+    frame = scene.frames[frame_idx]
+    fig, ax = plt.subplots(3, 3, figsize=CAMERAS_PLOT_CONFIG["figure_size"])
+
+    add_camera_ax(ax[0, 0], frame.cameras.cam_l0)
+    add_camera_ax(ax[0, 1], frame.cameras.cam_f0)
+    add_camera_ax(ax[0, 2], frame.cameras.cam_r0)
+
+    add_camera_ax(ax[1, 0], frame.cameras.cam_l1)
+    add_configured_bev_on_ax(ax[1, 1], scene.map_api, frame)
+    add_trajectory_to_bev_ax(ax[1, 1], human_trajectory, TRAJECTORY_CONFIG["human"])
+    add_trajectory_to_bev_ax(ax[1, 1], agent_trajectory, TRAJECTORY_CONFIG["agent"])
+    add_camera_ax(ax[1, 2], frame.cameras.cam_r1)
+
+    add_camera_ax(ax[2, 0], frame.cameras.cam_l2)
+    add_camera_ax(ax[2, 1], frame.cameras.cam_b0)
+    add_camera_ax(ax[2, 2], frame.cameras.cam_r2)
+
+    configure_all_ax(ax)
+    configure_bev_ax(ax[1, 1])
+    fig.tight_layout()
+    fig.subplots_adjust(wspace=0.01, hspace=0.01, left=0.01, right=0.99, top=0.99, bottom=0.01)
+
+    return fig, ax
+
+def plot_cameras_frame_with_bev_agent_cot(
+        scene: Scene,
+        frame_idx: int,
+        agent_trajectory: Trajectory,
+        cot: str = "",
+    ) -> Tuple[plt.Figure, Any]:
+    """
+    Plots 8x cameras and birds-eye-view visualization in 3x3 grid. 
+    Plots agent and human trajectory in birds-eye-view visualization
+    :param scene: navsim scene dataclass
+    :param frame_idx: index of selected frame
+    :param agent_trajectory: predicted agent trajectory
+    :param cot: long string to display as caption below the plot
+    :return: figure and ax object of matplotlib
+    """
+    import matplotlib.gridspec as gridspec
+
+    human_trajectory = scene.get_future_trajectory()
+    frame = scene.frames[frame_idx]
+
+    # Create a larger figure to include space for caption
+    fig = plt.figure(figsize=(CAMERAS_PLOT_CONFIG["figure_size"][0], 
+                              CAMERAS_PLOT_CONFIG["figure_size"][1] + 2))  # extra height for text
+    spec = gridspec.GridSpec(4, 3, height_ratios=[1, 1, 1, 0.2], figure=fig)
+
+    ax = np.empty((3, 3), dtype=object)
+    for i in range(3):
+        for j in range(3):
+            ax[i, j] = fig.add_subplot(spec[i, j])
+
+    add_camera_ax(ax[0, 0], frame.cameras.cam_l0)
+    add_camera_ax(ax[0, 1], frame.cameras.cam_f0)
+    add_camera_ax(ax[0, 2], frame.cameras.cam_r0)
+
+    add_camera_ax(ax[1, 0], frame.cameras.cam_l1)
+    add_configured_bev_on_ax(ax[1, 1], scene.map_api, frame)
+    add_trajectory_to_bev_ax(ax[1, 1], human_trajectory, TRAJECTORY_CONFIG["human"])
+    add_trajectory_to_bev_ax(ax[1, 1], agent_trajectory, TRAJECTORY_CONFIG["agent"])
+    add_camera_ax(ax[1, 2], frame.cameras.cam_r1)
+
+    add_camera_ax(ax[2, 0], frame.cameras.cam_l2)
+    add_camera_ax(ax[2, 1], frame.cameras.cam_b0)
+    add_camera_ax(ax[2, 2], frame.cameras.cam_r2)
+
+    configure_all_ax(ax)
+    configure_bev_ax(ax[1, 1])
+
+    # Add full-width caption text
+    caption_ax = fig.add_subplot(spec[3, :])
+    caption_ax.axis("off")
+    caption_ax.text(0.01, 0.95, cot, ha='left', va='top', wrap=True, fontsize=10)
+
+    fig.tight_layout()
+    fig.subplots_adjust(wspace=0.01, hspace=0.01, left=0.01, right=0.99, top=0.97, bottom=0.01)
+
+    return fig, ax
 
 def frame_plot_to_gif(
     file_name: str,

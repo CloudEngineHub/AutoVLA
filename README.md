@@ -27,7 +27,7 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>�
 - 🔥 Extensive experiments across real-world and simulated datasets and benchmarks, including **nuPlan**, **nuScenes**, **Waymo**, and **CARLA**, demonstrate its competitive performance in both open-loop and closed-loop settings. 
 
 ## News
-- **`2025/12`**: The reasoning annotation code for AutoVLA is now released.
+- **`2026/01`**: AutoVLA codebase is now released.
 - **`2025/09`**: [AutoVLA](https://arxiv.org/abs/2506.13757) is accepted by [NeurIPS 2025](https://neurips.cc/) 👏👏.
 - **`2025/06`**: [AutoVLA](https://arxiv.org/abs/2506.13757) paper release.
 - **`2025/05`**: In the [Waymo Vision-based End-to-end Driving Challenge](https://waymo.com/open/challenges/2025/e2e-driving/), AutoVLA ranks highly in both RFS Overall and achieves the top RFS Spotlight score, which focuses on the most challenging scenarios.
@@ -40,8 +40,9 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>�
 ## Release Plan
 - **`2025/06`**: ✅ AutoVLA paper.
 - **`2025/12`**: ✅ Reasoning annotation code.
-- **`2025/12`**: AutoVLA code.
-- **`2026/01`**: AutoVLA checkpoints.
+- **`2026/01`**: ✅ AutoVLA SFT code.
+- **`2026/01`**: ✅ AutoVLA RFT code.
+- **`2026/02`**: AutoVLA checkpoints.
 - **`TBD`** : Reasoning data (Pending approval from the data provider).
 
 ## Devkit setup
@@ -97,16 +98,16 @@ Specifically, we use the 72B model in CoT annotation, and you can choose `Qwen2.
 #### nuPlan Dataset
 You can perform the command to preprocess the nuPlan dataset. Please first revise your path and data split (refer to [here](https://github.com/autonomousvision/navsim/blob/v2.0/docs/splits.md)) in the config. The `INCLUDE_COT` setting in the bash determines whether to launch the CoT reasoning annotation.
 ```bash
-bash scripts/run_nuplan_preprocessing.bash
+bash scripts/run_nuplan_preprocessing.sh
 ```
 #### Waymo E2E Dataset
 To organize the image data and support random access, we first cache the image data in the same format as the other dataset we used.
 ```bash
-bash scripts/run_waymo_e2e_image_extraction.bash
+bash scripts/run_waymo_e2e_image_extraction.sh
 ```
 You can perform the following command to preprocess the Waymo E2E dataset. Please also first revise your path and data split in the config and set the `INCLUDE_COT`.
 ```bash
-bash scripts/run_waymo_e2e_preprocessing.bash
+bash scripts/run_waymo_e2e_preprocessing.sh
 ```
 You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the waymo data after preprocessing.
 #### nuScenes Dataset
@@ -119,8 +120,19 @@ You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualizati
 <span style="color:red">[TBD]</span>
 
 ### 4. Reinforcement Fine-tuning (RFT)
+We introduce a reinforcement fine-tuning method based on Group Relative Policy Optimization (GRPO), reducing unnecessary reasoning in straightforward scenarios. 
+
+You can revise your dataset path and GRPO parameters in the config file in `config/training`. Then, perform the following command to run the reinforcement finetuning.
+```bash
+bash scripts/run_rft.sh
+```
 
 ### 5. Navsim Testing
+We leverage navsim and its Predictive Driver Model Score (PDMS) to test and evaluate our model. You need to set up the dataset path and split in the evaluation bash, and run the command to launch the testing.
+```bash
+bash navsim/scripts/evaluation/run_autovla_agent_pdm_score_evaluation.sh
+```
+
 
 ## Citation
 If you find this repository useful for your research, please consider giving us a star 🌟 and citing our paper.

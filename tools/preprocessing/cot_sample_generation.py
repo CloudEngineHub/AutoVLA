@@ -36,7 +36,7 @@ if __name__ == "__main__":
     seed_everything(args.seed)
 
     # Load configuration
-    config = load_config(f"{args.config}")
+    config = load_config(f"./config/{args.config}.yaml")
 
     # Output directory
     os.makedirs(args.output_dir, exist_ok=True)

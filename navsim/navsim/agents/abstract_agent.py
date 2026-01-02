@@ -1,11 +1,9 @@
-from abc import ABC, abstractmethod
-from typing import Dict, List, Union
-
-import pytorch_lightning as pl
+from abc import abstractmethod, ABC
+from typing import Dict, Union, List
 import torch
-from nuplan.planning.simulation.trajectory.trajectory_sampling import TrajectorySampling
+import pytorch_lightning as pl
 
-from navsim.common.dataclasses import AgentInput, SensorConfig, Trajectory
+from navsim.common.dataclasses import AgentInput, Trajectory, SensorConfig
 from navsim.planning.training.abstract_feature_target_builder import AbstractFeatureBuilder, AbstractTargetBuilder
 
 
@@ -14,24 +12,24 @@ class AbstractAgent(torch.nn.Module, ABC):
 
     def __init__(
         self,
-        trajectory_sampling: TrajectorySampling,
         requires_scene: bool = False,
     ):
         super().__init__()
         self.requires_scene = requires_scene
-        self._trajectory_sampling = trajectory_sampling
 
     @abstractmethod
     def name(self) -> str:
         """
         :return: string describing name of this agent.
         """
+        pass
 
     @abstractmethod
     def get_sensor_config(self) -> SensorConfig:
         """
         :return: Dataclass defining the sensor configuration for lidar and cameras.
         """
+        pass
 
     @abstractmethod
     def initialize(self) -> None:
@@ -39,6 +37,7 @@ class AbstractAgent(torch.nn.Module, ABC):
         Initialize agent
         :param initialization: Initialization class.
         """
+        pass
 
     def forward(self, features: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
@@ -81,7 +80,7 @@ class AbstractAgent(torch.nn.Module, ABC):
             poses = predictions["trajectory"].squeeze(0).numpy()
 
         # extract trajectory
-        return Trajectory(poses, self._trajectory_sampling)
+        return Trajectory(poses)
 
     def compute_loss(
         self,
@@ -96,7 +95,7 @@ class AbstractAgent(torch.nn.Module, ABC):
 
     def get_optimizers(
         self,
-    ) -> Union[torch.optim.Optimizer, Dict[str, Union[torch.optim.Optimizer, torch.optim.lr_scheduler.LRScheduler]],]:
+    ) -> Union[torch.optim.Optimizer, Dict[str, Union[torch.optim.Optimizer, torch.optim.lr_scheduler.LRScheduler]]]:
         """
         Returns the optimizers that are used by thy pytorch-lightning trainer.
         Has to be either a single optimizer or a dict of optimizer and lr scheduler.

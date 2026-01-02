@@ -1,7 +1,7 @@
-from typing import Dict, Tuple
-
 import pytorch_lightning as pl
+
 from torch import Tensor
+from typing import Dict, Tuple
 
 from navsim.agents.abstract_agent import AbstractAgent
 

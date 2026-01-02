@@ -1,9 +1,9 @@
 # Default common configs
 
 defaults:
-  - train_test_split: mini
+  - train_test_split: trainval
   # Worker that is used to run simulations
-  - worker: ray_distributed_no_torch
+  - worker: sequential
   - _self_
 
 distributed_timeout_seconds: 7200 # Sets how long to wait while synchronizing across worker nodes in a distributed context.
@@ -20,10 +20,3 @@ logger_format_string: null                          # Logger format string, set 
 # Execution
 max_number_of_workers: null                         # Set null to disable threading for simulation execution
 gpu: true                                           # Whether to use available GPUs during training/simulation
-
-# Sampling of the trajectory output evaluated by the PDM Scorer
-proposal_sampling:
-  _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-  _convert_: 'all'
-  num_poses: 40
-  interval_length: 0.1

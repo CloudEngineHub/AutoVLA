@@ -1,21 +1,22 @@
 from enum import IntEnum
 from typing import Any, Dict, List, Tuple
-
 import cv2
 import numpy as np
 import numpy.typing as npt
+
 import torch
+from torchvision import transforms
+
+from shapely import affinity
+from shapely.geometry import Polygon, LineString
+
+from nuplan.common.maps.abstract_map import AbstractMap, SemanticMapLayer, MapObject
 from nuplan.common.actor_state.oriented_box import OrientedBox
 from nuplan.common.actor_state.state_representation import StateSE2
 from nuplan.common.actor_state.tracked_objects_types import TrackedObjectType
-from nuplan.common.maps.abstract_map import AbstractMap, MapObject, SemanticMapLayer
-from nuplan.planning.simulation.trajectory.trajectory_sampling import TrajectorySampling
-from shapely import affinity
-from shapely.geometry import LineString, Polygon
-from torchvision import transforms
 
 from navsim.agents.transfuser.transfuser_config import TransfuserConfig
-from navsim.common.dataclasses import AgentInput, Annotations, Scene
+from navsim.common.dataclasses import AgentInput, Scene, Annotations
 from navsim.common.enums import BoundingBoxIndex, LidarIndex
 from navsim.planning.scenario_builder.navsim_scenario_utils import tracked_object_types
 from navsim.planning.training.abstract_feature_target_builder import AbstractFeatureBuilder, AbstractTargetBuilder
@@ -40,8 +41,7 @@ class TransfuserFeatureBuilder(AbstractFeatureBuilder):
         features = {}
 
         features["camera_feature"] = self._get_camera_feature(agent_input)
-        if not self._config.latent:
-            features["lidar_feature"] = self._get_lidar_feature(agent_input)
+        features["lidar_feature"] = self._get_lidar_feature(agent_input)
         features["status_feature"] = torch.concatenate(
             [
                 torch.tensor(agent_input.ego_statuses[-1].driving_command, dtype=torch.float32),
@@ -120,17 +120,11 @@ class TransfuserFeatureBuilder(AbstractFeatureBuilder):
 class TransfuserTargetBuilder(AbstractTargetBuilder):
     """Output target builder for TransFuser."""
 
-    def __init__(
-        self,
-        trajectory_sampling: TrajectorySampling,
-        config: TransfuserConfig,
-    ):
+    def __init__(self, config: TransfuserConfig):
         """
         Initializes target builder.
-        :param trajectory_sampling: trajectory sampling specification
         :param config: global config dataclass of TransFuser
         """
-        self._trajectory_sampling = trajectory_sampling
         self._config = config
 
     def get_unique_name(self) -> str:
@@ -141,7 +135,7 @@ class TransfuserTargetBuilder(AbstractTargetBuilder):
         """Inherited, see superclass."""
 
         trajectory = torch.tensor(
-            scene.get_future_trajectory(num_trajectory_frames=self._trajectory_sampling.num_poses).poses
+            scene.get_future_trajectory(num_trajectory_frames=self._config.trajectory_sampling.num_poses).poses
         )
         frame_idx = scene.scene_metadata.num_history_frames - 1
         annotations = scene.frames[frame_idx].annotations
@@ -180,12 +174,7 @@ class TransfuserTargetBuilder(AbstractTargetBuilder):
             )
 
             if name == "vehicle" and _xy_in_lidar(box_x, box_y, self._config):
-                agent_states_list.append(
-                    np.array(
-                        [box_x, box_y, box_heading, box_length, box_width],
-                        dtype=np.float32,
-                    )
-                )
+                agent_states_list.append(np.array([box_x, box_y, box_heading, box_length, box_width], dtype=np.float32))
 
         agents_states_arr = np.array(agent_states_list)
 
@@ -271,13 +260,7 @@ class TransfuserTargetBuilder(AbstractTargetBuilder):
                 linestring: LineString = self._geometry_local_coords(map_object.baseline_path.linestring, ego_pose)
                 points = np.array(linestring.coords).reshape((-1, 1, 2))
                 points = self._coords_to_pixel(points)
-                cv2.polylines(
-                    map_linestring_mask,
-                    [points],
-                    isClosed=False,
-                    color=255,
-                    thickness=2,
-                )
+                cv2.polylines(map_linestring_mask, [points], isClosed=False, color=255, thickness=2)
         # OpenCV has origin on top-left corner
         map_linestring_mask = np.rot90(map_linestring_mask)[::-1]
         return map_linestring_mask > 0
@@ -295,11 +278,7 @@ class TransfuserTargetBuilder(AbstractTargetBuilder):
             if agent_type in layers:
                 # box_value = (x, y, z, length, width, height, yaw) TODO: add intenum
                 x, y, heading = box_value[0], box_value[1], box_value[-1]
-                box_length, box_width, box_height = (
-                    box_value[3],
-                    box_value[4],
-                    box_value[5],
-                )
+                box_length, box_width, box_height = box_value[3], box_value[4], box_value[5]
                 agent_box = OrientedBox(StateSE2(x, y, heading), box_length, box_width, box_height)
                 exterior = np.array(agent_box.geometry.exterior.coords).reshape((-1, 1, 2))
                 exterior = self._coords_to_pixel(exterior)

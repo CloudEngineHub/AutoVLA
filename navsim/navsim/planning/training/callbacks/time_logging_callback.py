@@ -1,5 +1,5 @@
-import time
 from typing import Any, Optional
+import time
 
 import pytorch_lightning as pl
 

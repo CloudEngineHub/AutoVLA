@@ -1,8 +1,9 @@
-import copy
 from typing import Dict, Tuple
+import copy
 
 import numpy as np
 import numpy.typing as npt
+
 from nuplan.common.actor_state.state_representation import Point2D
 from nuplan.common.actor_state.tracked_objects import TrackedObject
 from nuplan.common.actor_state.tracked_objects_types import AGENT_TYPES, TrackedObjectType

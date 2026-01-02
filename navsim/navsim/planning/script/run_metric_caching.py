@@ -1,8 +1,8 @@
 import logging
-
 import hydra
-from nuplan.planning.script.builders.logging_builder import build_logger
 from omegaconf import DictConfig
+
+from nuplan.planning.script.builders.logging_builder import build_logger
 
 from navsim.planning.metric_caching.caching import cache_data
 from navsim.planning.script.builders.worker_pool_builder import build_worker

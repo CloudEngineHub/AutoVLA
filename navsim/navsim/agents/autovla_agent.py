@@ -229,9 +229,9 @@ class TokenProcessor(torch.nn.Module):
 class AutoVLAAgentFeatureBuilder(AbstractFeatureBuilder):
     """Input feature builder of AutoVLA Agent."""
 
-    def __init__(self):
+    def __init__(self, sensor_data_path: Optional[str] = None):
         """Initializes the feature builder."""
-        pass
+        self.sensor_data_path = sensor_data_path
 
     def get_unique_name(self) -> str:
         """Inherited, see superclass."""
@@ -281,6 +281,7 @@ class AutoVLAAgentFeatureBuilder(AbstractFeatureBuilder):
             "dataset_name": dataset_name,
             "gt_trajectory": gt_trajectory,
             "history_trajectory": history_trajectory,
+            "sensor_data_path": self.sensor_data_path,
         }
 
         return features
@@ -416,7 +417,7 @@ class AutoVLAAgent(AbstractAgent):
 
     def get_feature_builders(self) -> List[AbstractFeatureBuilder]:
         """Inherited, see superclass."""
-        return [AutoVLAAgentFeatureBuilder()]
+        return [AutoVLAAgentFeatureBuilder(sensor_data_path=self.sensor_data_path)]
     
     def compute_trajectory(self, scene_data) -> Trajectory:
         """

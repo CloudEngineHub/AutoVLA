@@ -45,7 +45,7 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>â€
 - **`2026/02`**: AutoVLA checkpoints.
 - **`TBD`** : Reasoning data (Pending approval from the data provider).
 
-## Devkit setup
+## Devkit Setup
 ### 1. Dataset Downloading
 #### nuPlan Dataset
 You can refer to [here](https://github.com/autonomousvision/navsim/blob/main/docs/install.md) to prepare the nuPlan dataset. Be careful with he dataset structure.
@@ -117,7 +117,10 @@ You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualizati
 <span style="color:red">[TBD]</span>
 
 ### 3. Supervised Fine-tuning (SFT)
-<span style="color:red">[TBD]</span>
+First revise the dataset path and SFT parameters in the config file in `config/training`. Then, launch the sft training with the command.
+```bash
+bash scripts/run_sft.sh
+```
 
 ### 4. Reinforcement Fine-tuning (RFT)
 We introduce a reinforcement fine-tuning method based on Group Relative Policy Optimization (GRPO), reducing unnecessary reasoning in straightforward scenarios. 

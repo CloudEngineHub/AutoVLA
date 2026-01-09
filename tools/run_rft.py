@@ -8,26 +8,20 @@ from peft import get_peft_model, LoraConfig, TaskType
 
 from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning import seed_everything
 from pytorch_lightning import Trainer
 from pytorch_lightning.strategies import FSDPStrategy
-from pytorch_lightning.utilities.model_summary import ModelSummary
 
 from torch.distributed.fsdp import MixedPrecision
 from torch.distributed.fsdp.wrap import transformer_auto_wrap_policy
 from torch.distributed.fsdp import BackwardPrefetch
-from torch.distributed.fsdp import ShardingStrategy
-from torch.distributed.fsdp.wrap import size_based_auto_wrap_policy
-from torch.utils.data import DataLoader, Dataset, DistributedSampler
+from torch.utils.data import DataLoader, DistributedSampler
 import torch.distributed as dist
 
 from models.autovla import GRPOAutoVLA
 from dataset_utils.rft_dataset import RFTDataset
-from transformers import AutoProcessor
 from transformers.models.qwen2_5_vl.modeling_qwen2_5_vl import Qwen2_5_VLDecoderLayer
-from navsim.common.dataclasses import SceneFilter
 import datetime
 import warnings
 
@@ -191,7 +185,7 @@ if __name__ == "__main__":
                 mode="max",
                 save_top_k=-1,
                 dirpath=f"{save_dir}",
-                filename="nuplan-step{step}-reward{avg_train_reward:.4f}",
+                filename="rft-step{step}-reward{avg_train_reward:.4f}",
                 auto_insert_metric_name=False,
                 save_weights_only=True,
                 every_n_train_steps=500,

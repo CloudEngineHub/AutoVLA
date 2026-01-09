@@ -1,17 +1,11 @@
 import torch
-import base64
-import cv2
 import os
-import pickle
 from tqdm import tqdm
 from typing import Dict, Any
 import pytorch_lightning as pl
 from pathlib import Path
+import torch.nn.functional as F
 import numpy as np
-import time
-import logging
-import sys
-import re
 from typing import List
 from torch.distributed.fsdp import StateDictType
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
@@ -19,7 +13,6 @@ from qwen_vl_utils import process_vision_info
 from models.action_tokenizer import ActionTokenizer
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from models.utils.score import PDM_Reward, TrajectorySampling, Trajectory
-import torch.distributed as dist
 
 
 class GRPOAutoVLA(pl.LightningModule):
@@ -43,8 +36,6 @@ class GRPOAutoVLA(pl.LightningModule):
 
         # Training model (wrapped by Lightning FSDPStrategy)
         self.autovla = AutoVLA(config)
-        self._action_tokenizer = ActionTokenizer(self.autovla.processor.tokenizer, 
-                                                model_config=config['model'])
 
         self.autovla.train()
         self._train_vision_backbone = config['model']['train_vision_backbone']
@@ -121,7 +112,7 @@ class GRPOAutoVLA(pl.LightningModule):
 
         # Compute the policy loss
         per_policy_loss = \
-            torch.exp(per_token_logps - per_token_logps.detach()) * advantage.unsqueeze(1)
+            torch.exp(per_token_logps - per_token_logps.detach()) * advantage.unsqueeze(-1)
 
         # Compute the kl loss
         kl_beta = self.cfg['rl'].get("kl_beta", 0.0)
@@ -238,7 +229,6 @@ class GRPOAutoVLA(pl.LightningModule):
 
             prompt_length = inputs.input_ids.size(1)
             prompt_mask = model_inputs['attention_mask']
-            prompt_ids = prompt_completion_ids[:, :prompt_length]
             completion_ids = prompt_completion_ids[:, prompt_length:]
 
             # Extract action tokens and trajectory (! batch size = 1)
@@ -252,7 +242,7 @@ class GRPOAutoVLA(pl.LightningModule):
             else:
                 pass
 
-            trajectory = self._action_tokenizer.decode_token_ids_to_trajectory(actions_tokens.cpu())[0, 1:]
+            trajectory = self.autovla.action_tokenizer.decode_token_ids_to_trajectory(actions_tokens.cpu())[0, 1:]
             trajectory = Trajectory(trajectory.cpu().numpy(), self.trajectory_sampling)
 
             # Create completion mask
@@ -333,59 +323,83 @@ class SFTAutoVLA(pl.LightningModule):
         self.autovla = AutoVLA(config)
         self.autovla.train()
 
-        self._action_tokenizer = ActionTokenizer(self.autovla.processor.tokenizer, 
-                                                model_config=config['model'])
         self._train_vision_backbone = config['model']['train_vision_backbone']
         self._train_llm_backbone = config['model']['train_lm_backbone']
 
     def training_step(self, batch):
+        hascot = batch['has_cot']
         gt_trajectory = batch["gt_trajectory"]
+        gt_action = batch["gt_action"]
         output = self.autovla(batch)
         loss = output.loss
 
-        if batch['labels'].shape[-1] > 1000:
-            # add more penalty for CoT reasoning data
-            loss = loss * 10
+        # === Add additional loss on action tokens ===
+        # output.logits shape: (B, T, V), labels shape: (B, T)
+        logits = output.logits
+        vocab_size = logits.size(-1)
+        # Flatten logits and labels for token-wise loss
+        labels = batch['labels']
+        shift_logits = logits[..., :-1, :].contiguous()
+        shift_labels = labels[..., 1:].contiguous()
+
+        logits_flat = shift_logits.view(-1, vocab_size)
+        labels_flat = shift_labels.view(-1)
+        # Identify action token positions
+        action_mask = (labels_flat >= self.autovla.action_start_id)  # shape: (B*T,)
+        # Compute token-wise cross-entropy loss
+        ce_loss_all = F.cross_entropy(logits_flat, labels_flat, reduction='none')  # shape: (B*T,)
+        # Extract loss for action tokens
+        action_loss = ce_loss_all[action_mask]
+        # Add to total loss with optional weighting factor
+        if action_loss.numel() > 0:
+            action_loss = action_loss.mean()
+
+        # # add more penalty for CoT reasoning data
+        if hascot[0] == True:
+            # print("add more penalty for CoT reasoning data")
+            loss = loss * 40
+            loss = loss + action_loss
 
         self.log("train_loss", loss.item(),
-                 batch_size=gt_trajectory.shape[0],
+                 batch_size=gt_action.shape[0],
                  sync_dist=True,
                  prog_bar=True)
         
-        metrics = self.calculate_metrics(output.logits, batch['labels'], gt_trajectory)
+        # metrics = self.calculate_metrics(output.logits, batch['labels'], gt_trajectory)
         
-        self.log("train_action_acc",
-                 metrics['action_acc'],
-                 batch_size=gt_trajectory.shape[0],
-                 sync_dist=True, prog_bar=True)
+        # self.log("train_action_acc",
+        #          metrics['action_acc'],
+        #          batch_size=gt_action.shape[0],
+        #          sync_dist=True, prog_bar=True)
         
-        self.log("train_traj_mse",
-                 metrics['traj_mse'],
-                 batch_size=gt_trajectory.shape[0],
-                 sync_dist=True, prog_bar=True)
+        # self.log("train_traj_mse",
+        #          metrics['traj_mse'],
+        #          batch_size=gt_action.shape[0],
+        #          sync_dist=True, prog_bar=True)
         
         return loss
     
     def validation_step(self, batch):
         gt_trajectory = batch["gt_trajectory"]
+        gt_action = batch["gt_action"]
 
         output = self.autovla(batch)
         loss = output.loss
         self.log("val_loss", loss.item(),
-                 batch_size=gt_trajectory.shape[0],
+                 batch_size=gt_action.shape[0],
                  sync_dist=True, prog_bar=True)
         
-        metrics = self.calculate_metrics(output.logits, batch['labels'], gt_trajectory)
+        # metrics = self.calculate_metrics(output.logits, batch['labels'], gt_trajectory)
 
-        self.log("val_action_acc",
-                 metrics['action_acc'],
-                 batch_size=gt_trajectory.shape[0],
-                 sync_dist=True, prog_bar=True)
+        # self.log("val_action_acc",
+        #          metrics['action_acc'],
+        #          batch_size=gt_action.shape[0],
+        #          sync_dist=True, prog_bar=True)
         
-        self.log("val_traj_mse",
-                 metrics['traj_mse'],
-                 batch_size=gt_trajectory.shape[0],
-                 sync_dist=True, prog_bar=True)
+        # self.log("val_traj_mse",
+        #          metrics['traj_mse'],
+        #          batch_size=gt_action.shape[0],
+        #          sync_dist=True, prog_bar=True)
         
         return loss
     
@@ -444,12 +458,12 @@ class SFTAutoVLA(pl.LightningModule):
     def calculate_metrics(self, logits, labels, gt_trajectory):
         # Find start index for ground truth sequence
         gt_start_idx = self.find_assistant_start_idx(labels[0])
-        gt_tokens = labels[0, gt_start_idx:]
-        pred_tokens = logits[0, gt_start_idx:].argmax(dim=-1)
+        gt_tokens = labels[0, gt_start_idx+1:] # shifted
+        pred_tokens = logits[0, gt_start_idx:-1].argmax(dim=-1)
 
         # Find action tokens in ground truth and predicted sequences
-        gt_action_idx = gt_tokens >= 151665
-        pred_action_idx = pred_tokens >= 151665
+        gt_action_idx = gt_tokens >= self.autovla.action_start_id
+        pred_action_idx = pred_tokens >= self.autovla.action_start_id
 
         if len(pred_tokens[pred_action_idx]) != len(gt_tokens[gt_action_idx]):
             pred_action_idx = gt_action_idx
@@ -458,15 +472,15 @@ class SFTAutoVLA(pl.LightningModule):
         pred_action_tokens = pred_tokens[pred_action_idx]
 
         # Decode predicted trajectory
-        pred_trajectory = self._action_tokenizer.decode_token_ids_to_trajectory(pred_action_tokens.cpu())
-        action_acc = (pred_action_tokens == gt_action_tokens).float().mean()
-        traj_mse = torch.norm(pred_trajectory[0, 1:, :2] - gt_trajectory[0].cpu(), dim=-1).mean()
-        traj_mse = traj_mse.to(logits.device)
+        # pred_trajectory = self.autovla.action_tokenizer.decode_token_ids_to_trajectory(pred_action_tokens.cpu())
+        # action_acc = (pred_action_tokens == gt_action_tokens).float().mean()
+        # traj_mse = torch.norm(pred_trajectory[0, 1:, :2] - gt_trajectory[0].cpu(), dim=-1).mean()
+        # traj_mse = traj_mse.to(logits.device)
 
-        return {
-            'action_acc': action_acc,
-            'traj_mse': traj_mse
-        }
+        # return {
+        #     'action_acc': action_acc,
+        #     'traj_mse': traj_mse
+        # }
     
     @staticmethod
     def find_assistant_start_idx(labels):

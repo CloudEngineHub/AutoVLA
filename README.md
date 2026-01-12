@@ -58,7 +58,7 @@ bash navsim/download/download_test.sh
 The waymo end-to-end driving dataset can be downloaded at [here](https://waymo.com/open/download/). 
 
 #### nuScenes Dataset
-<span style="color:red">[TBD]</span>
+The nuScenes dataset can be downloaded from the official website: [https://www.nuscenes.org/](https://www.nuscenes.org/). You will need to register and download the `v1.0-trainval` split.
 
 ### 2. Conda Environment Setup
 You can perform the following command to create a conda environment and install the required dependencies.
@@ -111,7 +111,13 @@ bash scripts/run_waymo_e2e_preprocessing.sh
 ```
 You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the waymo data after preprocessing.
 #### nuScenes Dataset
-<span style="color:red">[TBD]</span>
+You can download the DriveLM nuScenes annotations (`v1_1_train_nus.json`) from [https://github.com/OpenDriveLab/DriveLM/tree/main/challenge](https://github.com/OpenDriveLab/DriveLM/tree/main/challenge). Then run the following command to preprocess the nuScenes dataset:
+```bash
+bash scripts/run_nuscenes_preprocessing.sh \
+    --nuscenes_path /path/to/nuscenes \
+    --output_dir /path/to/output \
+    --drivelm_path /path/to/drivelm/v1_1_train_nus.json
+```
 
 ### 2. Action Codebook Creation
 <span style="color:red">[TBD]</span>

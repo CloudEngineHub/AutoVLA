@@ -1,16 +1,10 @@
-import sys
-import os
+import pickle
 from typing import List, Union, Optional, Tuple
 
-import pickle
 import numpy as np
-from transformers import PreTrainedTokenizerBase
-
 import torch
-import math
-from omegaconf import DictConfig
 from torch import Tensor
-from torch.distributions import Categorical, Independent, MixtureSameFamily, Normal
+from transformers import PreTrainedTokenizerBase
 
 def transform_to_global(
     pos_local: Tensor,  # [n_agent, n_step, 2]
@@ -100,11 +94,11 @@ class ActionTokenizer:
         pos_a = torch.tensor([[[0, 0]]]) # [1, 1, 2]
         head_a = torch.tensor([[0]]) # [1, 1]
         
-        # ! loop through all tokens
+        # loop through all tokens
         for t in range(time_steps):
             next_token_traj_all = action_tokens[None, t]  # [1, 6, 4, 2]
             
-            # ! transform to global
+            # transform to global
             token_traj_global = transform_to_global(
                 pos_local=next_token_traj_all.flatten(1, 2),  # [1, 6*4, 2]
                 head_local=None,
@@ -112,12 +106,12 @@ class ActionTokenizer:
                 head_now=head_a[:, t],  # [1]
             )[0].view(*next_token_traj_all.shape)
 
-            # ! get pos_a_next and head_a_next
+            # get pos_a_next and head_a_next
             pos_a_next = token_traj_global[:, -1].mean(dim=1)
             diff_xy_next = token_traj_global[:, -1, 0] - token_traj_global[:, -1, 3]
             head_a_next = torch.arctan2(diff_xy_next[:, 1], diff_xy_next[:, 0])
             
-            # ! get trajectory
+            # get trajectory
             pos_a = torch.cat([pos_a, pos_a_next.unsqueeze(1)], dim=1)
             head_a = torch.cat([head_a, head_a_next.unsqueeze(1)], dim=1)
 

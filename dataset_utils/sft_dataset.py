@@ -1,22 +1,15 @@
-import gc
 import os
-import cv2
-import glob
-import torch
-import base64
 import json
+import torch
 import numpy as np
 from pathlib import Path
-from PIL import Image
-from models.action_tokenizer import ActionTokenizer
 from torch.utils.data import Dataset
 from transformers import AutoProcessor
 from qwen_vl_utils import process_vision_info
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
-from navsim.common.dataloader import SceneLoader
+from models.action_tokenizer import ActionTokenizer
 from navsim.agents.autovla_agent import AutoVLAAgent
-from navsim.common.dataclasses import SceneFilter
 from nuplan.planning.simulation.trajectory.trajectory_sampling import TrajectorySampling
 
 IGNORE_INDEX = -100
@@ -92,7 +85,6 @@ class SFTDataset(Dataset):
 
         # Assign to individual variables for message formatting
         front_camera_1, front_camera_2, front_camera_3, front_camera_4 = camera_images['front_camera']
-        back_camera_1, back_camera_2, back_camera_3, back_camera_4 = camera_images['back_camera']
         front_left_camera_1, front_left_camera_2, front_left_camera_3, front_left_camera_4 = camera_images['front_left_camera']
         front_right_camera_1, front_right_camera_2, front_right_camera_3, front_right_camera_4 = camera_images['front_right_camera']
 
@@ -144,28 +136,6 @@ class SFTDataset(Dataset):
 
             has_cot = False
         else:
-            # system_content = [
-            #     {
-            #         "type": "text",
-            #         "text": (
-            #             "You are an Advanced Driver Assistance and Full Self-Driving System. "
-            #             "You will receive visual observations from the ego vehicle's cameras and dynamic information about the vehicle's current state. "
-            #             "Your task is to predict the optimal driving action for the next five seconds.\n\n"
-            #             "First, carefully analyze the surrounding environment by considering traffic lights, the movements of other vehicles and pedestrians, lane markings, and any other relevant factors.\n\n"
-            #             "If necessary, use step-by-step reasoning (Chain-of-Thought) to arrive at the best driving action. Otherwise, you may directly predict the final driving action.\n\n"
-            #             "Structure your reasoning as follows:\n"
-            #             "1. **Scene Analysis**: Describe the traffic situation, including relevant environmental cues such as traffic lights, lane markings, and the behaviors of surrounding vehicles or pedestrians.\n"
-            #             "2. **Identification of Critical Objects**: Identify two to three critical road users or obstacles, specifying their relative positions to the ego vehicle.\n"
-            #             "3. **Prediction of Critical Object Behavior**: Predict the potential movements of the identified critical objects.\n"
-            #             "4. **Ego Vehicle Intent Reasoning**: Based on the observed environment and current vehicle state, reason about the desired intent of the ego vehicle.\n"
-            #             "5. **Final Action Decision**: Select one lateral action and one longitudinal action:\n"
-            #             "- **Lateral actions** (choose exactly one): [move forward, turn left, change lane to left, turn right, change lane to right]\n"
-            #             "- **Longitudinal actions** (choose exactly one): [stop, deceleration to zero, maintain constant speed, quick deceleration, deceleration, quick acceleration, acceleration]\n\n"
-            #             "Present the final action clearly after your reasoning steps."
-            #         )
-            #     }
-            # ]
-
             system_content = [
                 {
                     "type": "text",
@@ -213,6 +183,42 @@ class SFTDataset(Dataset):
                             )
                         }
                     ]
+            elif scene_data['dataset_name'] == "nuscenes":
+                has_cot = False
+                if len(gt_cot) == 5:  # If CoT is available
+                    if gt_cot[4] == "STOP\n":
+                        gt_cot[4] = "stop"
+                    assistant_content = [
+                        {
+                            "type": "text",
+                            "text":
+                                "<think>\n"
+                                "This is a complex scenario requiring additional reasoning.\n" 
+                                f"### Scene Description:\n{gt_cot[0]}\n\n" 
+                                f"### Critical Object Description:\n{gt_cot[1] + gt_cot[2]}\n\n" 
+                                f"### Reasoning on Intent:\n{gt_cot[3]}\n\n"
+                                f"### Best Driving Action:\n{gt_cot[4]}\n" 
+                                "</think>\n"
+                                "<answer>\n"
+                                "The final output action is: " + self.action_tokenizer(gt_action_idx[0]) + "\n"
+                                "</answer>"
+                        }
+                    ]
+                    has_cot = True
+                else:  # Only return the final action
+                    assistant_content = [
+                        {
+                            "type": "text",
+                            "text": (
+                                "<think>\n"
+                                "This is a straightforward scenario, and a direct decision can be made.\n"
+                                "</think>\n"
+                                "<answer>\n"
+                                "The final output action is: " + self.action_tokenizer(gt_action_idx[0]) + "\n"
+                                "</answer>"
+                            )
+                        }
+                    ]
             else:
                 print(scene_data['dataset_name'])
                 exit()
@@ -231,8 +237,8 @@ class SFTDataset(Dataset):
             },
             {
                 "type": "video",
-                "min_pixels": 28 * 28 * 140,
-                "max_pixels": 28 * 28 * 140,
+                "min_pixels": 28 * 28 * 128,
+                "max_pixels": 28 * 28 * 128,
                 "video": [
                     f"file://{front_camera_1}",
                     f"file://{front_camera_2}",
@@ -246,8 +252,8 @@ class SFTDataset(Dataset):
             },
             {
                 "type": "video",
-                "min_pixels": 28 * 28 * 140,
-                "max_pixels": 28 * 28 * 140,
+                "min_pixels": 28 * 28 * 128,
+                "max_pixels": 28 * 28 * 128,
                 "video": [
                     f"file://{front_left_camera_1}",
                     f"file://{front_left_camera_2}",
@@ -261,8 +267,8 @@ class SFTDataset(Dataset):
             },
             {
                 "type": "video",
-                "min_pixels": 28 * 28 * 140,
-                "max_pixels": 28 * 28 * 140,
+                "min_pixels": 28 * 28 * 128,
+                "max_pixels": 28 * 28 * 128,
                 "video": [
                     f"file://{front_right_camera_1}",
                     f"file://{front_right_camera_2}",
@@ -330,25 +336,17 @@ class DataCollator:
             self.assistant_id = [151644, 77091]  # default value for Qwen2.5-VL
 
     def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
-        # Extract text and image inputs
+        # Extract text inputs
         text = [batch["text"] for batch in features]
-        image_inputs = [batch["image_inputs"] for batch in features]
         
-        # Process all 6 videos
+        # Process video and image inputs
         video_inputs = []
         image_inputs = []
         has_cot = []
-        data_path = []
         for batch in features:
-            # Each batch has 6 videos (one per camera)
-            batch_videos = batch["video_inputs"]
             video_inputs.extend(batch["video_inputs"])
-            batch_images = batch["image_inputs"]
-            image_inputs.append(batch_images)
-            batch_has_cot = batch["has_cot"]
-            has_cot.append(batch_has_cot)
-            batch_data_path = batch["data_path"]
-            data_path.append(batch_data_path)
+            image_inputs.append(batch["image_inputs"])
+            has_cot.append(batch["has_cot"])
         
         
         batch = self.processor(
@@ -377,6 +375,5 @@ class DataCollator:
         batch['gt_trajectory'] = torch.stack([batch['gt_trajectory'] for batch in features])
         batch['gt_action'] = torch.stack([batch['gt_action'] for batch in features])
         batch['has_cot'] = torch.tensor(has_cot)
-        # batch['data_path'] = data_path
 
         return batch

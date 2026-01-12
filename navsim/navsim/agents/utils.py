@@ -94,9 +94,9 @@ def sample_next_token_traj(
     token_traj: Tensor,  # [n_agent, n_token, 4, 2]
     token_traj_all: Tensor,  # [n_agent, n_token, 6, 4, 2]
     sampling_scheme: DictConfig,
-    # ! for most-likely sampling
+    # for most-likely sampling
     next_token_logits: Tensor,  # [n_agent, n_token], with grad
-    # ! for nearest-pos sampling, sampling near to GT
+    # for nearest-pos sampling, sampling near to GT
     pos_now: Tensor,  # [n_agent, 2]
     head_now: Tensor,  # [n_agent]
     pos_next_gt: Tensor,  # [n_agent, 2]
@@ -120,7 +120,7 @@ def sample_next_token_traj(
             next_token_logits, sampling_scheme.num_k, dim=-1, sorted=False
         )
         if sampling_scheme.criterium == "topk_prob_sampled_with_dist":
-            #! gt_contour: [n_agent, 4, 2] in global coord
+            # gt_contour: [n_agent, 4, 2] in global coord
             gt_contour = cal_polygon_contour(
                 pos_next_gt, head_next_gt, token_agent_shape
             )
@@ -139,7 +139,7 @@ def sample_next_token_traj(
                 valid_next_gt.unsqueeze(1), 0.0
             ) - 1.0 * dist.masked_fill(~valid_next_gt.unsqueeze(1), 0.0)
     elif sampling_scheme.criterium == "topk_dist_sampled_with_prob":
-        #! gt_contour: [n_agent, 4, 2] in global coord
+        # gt_contour: [n_agent, 4, 2] in global coord
         gt_contour = cal_polygon_contour(pos_next_gt, head_next_gt, token_agent_shape)
         gt_contour = gt_contour.unsqueeze(1)  # [n_agent, 1, 4, 2]
         token_world_sample = transform_to_global(
@@ -177,12 +177,12 @@ def sample_next_gmm_traj(
     token_traj: Tensor,  # [n_agent, n_token, 4, 2]
     token_traj_all: Tensor,  # [n_agent, n_token, 6, 4, 2]
     sampling_scheme: DictConfig,
-    # ! for most-likely sampling
+    # for most-likely sampling
     ego_mask: Tensor,  # [n_agent], bool, ego_mask.sum()==n_batch
     ego_next_logits: Tensor,  # [n_batch, n_k_ego_gmm]
     ego_next_poses: Tensor,  # [n_batch, n_k_ego_gmm, 3]
     ego_next_cov: Tensor,  # [2], one for pos, one for heading.
-    # ! for nearest-pos sampling, sampling near to GT
+    # for nearest-pos sampling, sampling near to GT
     pos_now: Tensor,  # [n_agent, 2]
     head_now: Tensor,  # [n_agent]
     pos_next_gt: Tensor,  # [n_agent, 2]
@@ -200,7 +200,7 @@ def sample_next_gmm_traj(
     n_batch = ego_next_logits.shape[0]
     next_token_traj_all = token_traj_all[torch.arange(n_agent), next_token_idx]
 
-    # ! sample only the ego-vehicle
+    # sample only the ego-vehicle
     assert (
         sampling_scheme.criterium == "topk_prob"
         or sampling_scheme.criterium == "topk_prob_sampled_with_dist"

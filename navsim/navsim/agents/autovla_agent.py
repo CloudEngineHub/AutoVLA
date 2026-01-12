@@ -61,20 +61,20 @@ class TokenProcessor(torch.nn.Module):
             "heading": [1, n_step], float32
             "shape": [1, 3], float32
         """
-        # ! collate width/length, traj tokens for current batch
+        # collate width/length, traj tokens for current batch
         agent_shape, token_traj_all, token_traj = self._get_agent_shape_and_token_traj()
         
-        # ! prepare output dict
+        # prepare output dict
         tokenized_agent = {
             "gt_pos_raw": data[:, :2],  # [n_step=16, 2]
             "gt_head_raw": data[:, -1],  # [n_step=16]
         }
 
-        # ! get raw trajectory data
+        # get raw trajectory data
         heading = data[None, :, -1]  # [1, n_step]
         pos = data[None, :, :2]  # [1, n_step, 2]
         
-        # ! match token with trajectory
+        # match token with trajectory
         token_dict = self._match_agent_token(
             pos=pos,
             heading=heading,
@@ -82,7 +82,7 @@ class TokenProcessor(torch.nn.Module):
             token_traj=token_traj,
         )
 
-        # ! add token_dict to output dict
+        # add token_dict to output dict
         tokenized_agent.update(token_dict)
 
         return tokenized_agent
@@ -98,12 +98,12 @@ class TokenProcessor(torch.nn.Module):
         n_step_token=16
  
         Returns: Dict
-            # ! action that goes from [(0->5), (5->10), ..., (85->90)]
+            # action that goes from [(0->5), (5->10), ..., (85->90)]
             "gt_idx": [1, n_step_token]
             "gt_pos": [1, n_step_token, 2]
             "gt_heading": [1, n_step_token]
 
-            # ! noisy sampling for training data augmentation
+            # noisy sampling for training data augmentation
             "sampled_idx": [1, n_step_token]
             "sampled_pos": [1, n_step_token, 2]
             "sampled_heading": [1, n_step_token]
@@ -124,11 +124,11 @@ class TokenProcessor(torch.nn.Module):
         }
 
         for i in range(n_step): 
-            #! gt_contour: [1, 4, 2] in global coord
+            # gt_contour: [1, 4, 2] in global coord
             gt_contour = cal_polygon_contour(pos[:, i], heading[:, i], agent_shape)
             gt_contour = gt_contour.unsqueeze(1) # [1, 1, 4, 2]
    
-            # ! tokenize without sampling
+            # tokenize without sampling
             token_world_gt = transform_to_global(
                 pos_local=token_traj.flatten(1, 2), # [1, n_token*4, 2]
                 head_local=None,
@@ -155,7 +155,7 @@ class TokenProcessor(torch.nn.Module):
             out_dict["gt_pos"].append(prev_pos)
             out_dict["gt_heading"].append(prev_head)
 
-            # ! tokenize from sampled rollout state
+            # tokenize from sampled rollout state
             if num_k == 1:  # K=1 means no sampling
                 out_dict["sampled_idx"].append(out_dict["gt_idx"][-1])
                 out_dict["sampled_pos"].append(out_dict["gt_pos"][-1])

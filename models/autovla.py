@@ -365,17 +365,6 @@ class SFTAutoVLA(pl.LightningModule):
                  sync_dist=True,
                  prog_bar=True)
         
-        # metrics = self.calculate_metrics(output.logits, batch['labels'], gt_trajectory)
-        
-        # self.log("train_action_acc",
-        #          metrics['action_acc'],
-        #          batch_size=gt_action.shape[0],
-        #          sync_dist=True, prog_bar=True)
-        
-        # self.log("train_traj_mse",
-        #          metrics['traj_mse'],
-        #          batch_size=gt_action.shape[0],
-        #          sync_dist=True, prog_bar=True)
         
         return loss
     
@@ -388,18 +377,6 @@ class SFTAutoVLA(pl.LightningModule):
         self.log("val_loss", loss.item(),
                  batch_size=gt_action.shape[0],
                  sync_dist=True, prog_bar=True)
-        
-        # metrics = self.calculate_metrics(output.logits, batch['labels'], gt_trajectory)
-
-        # self.log("val_action_acc",
-        #          metrics['action_acc'],
-        #          batch_size=gt_action.shape[0],
-        #          sync_dist=True, prog_bar=True)
-        
-        # self.log("val_traj_mse",
-        #          metrics['traj_mse'],
-        #          batch_size=gt_action.shape[0],
-        #          sync_dist=True, prog_bar=True)
         
         return loss
     

@@ -48,7 +48,7 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>â€
 ## Devkit Setup
 ### 1. Dataset Downloading
 #### nuPlan Dataset
-You can refer to [here](https://github.com/autonomousvision/navsim/blob/main/docs/install.md) to prepare the nuPlan dataset. Be careful with he dataset structure.
+You can refer to [here](https://github.com/autonomousvision/navsim/blob/main/docs/install.md) to prepare the nuPlan dataset. Be careful with the dataset structure.
 ```bash
 bash navsim/download/download_maps.sh
 bash navsim/download/download_trainval.sh

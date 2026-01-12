@@ -49,7 +49,7 @@ if __name__ == "__main__":
     using_cot = config['model']['use_cot']
     
 
-    train_dataset = SFTDataset(config['data']['train'], config['model'], processor, using_cot=using_cot)
+    train_dataset = SFTDataset(config['data']['val'], config['model'], processor, using_cot=using_cot)
         
     # Randomly sample from training set if train_sample_size is specified
     train_sample_size = config['training']['train_sample_size']

@@ -528,17 +528,19 @@ class AutoVLA(torch.nn.Module):
         # image sensor
         images = input_features['images']
 
-        min_pixels = self.video_conf.get("min_pixels", 28 * 28 * 140)
-        max_pixels = self.video_conf.get("max_pixels", 28 * 28 * 140)
+        min_pixels = self.video_conf.get("min_pixels", 28 * 28 * 128)
+        max_pixels = self.video_conf.get("max_pixels", 28 * 28 * 128)
 
         camera_images = {}
         
         # List of all camera types
-        camera_types = ['front_camera', 'left_camera', 'right_camera']
+        camera_types = ['front_camera', 'front_left_camera', 'front_right_camera', 'left_camera', 'right_camera']
 
         # Load all camera images
         if input_features['sensor_data_path']:
             for camera_type in camera_types:
+                if images[camera_type] is None:
+                    continue
                 camera_images[camera_type] = []
                 for i in range(4):
                     img = images[camera_type][i]
@@ -547,8 +549,14 @@ class AutoVLA(torch.nn.Module):
         
         # Assign to individual variables for message formatting
         front_camera_1, front_camera_2, front_camera_3, front_camera_4 = camera_images['front_camera']
-        left_camera_1, left_camera_2, left_camera_3, left_camera_4 = camera_images['left_camera']
-        right_camera_1, right_camera_2, right_camera_3, right_camera_4 = camera_images['right_camera']
+        if 'front_left_camera' in camera_images:
+            left_camera_1, left_camera_2, left_camera_3, left_camera_4 = camera_images['front_left_camera']
+        else:
+            left_camera_1, left_camera_2, left_camera_3, left_camera_4 = camera_images['left_camera']
+        if 'front_right_camera' in camera_images:
+            right_camera_1, right_camera_2, right_camera_3, right_camera_4 = camera_images['front_right_camera']
+        else:
+            right_camera_1, right_camera_2, right_camera_3, right_camera_4 = camera_images['right_camera']
         
         # vehicle state
         velocity = input_features["vehicle_velocity"]

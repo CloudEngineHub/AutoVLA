@@ -123,7 +123,7 @@ def main():
        
         # Get ground truth trajectory
         gt_raw_trajectory = target_trajectory["gt_pos_raw"]
-        pred_xy = pred_trajectory.to(gt_raw_trajectory.device)
+        pred_xy = pred_trajectory[:, :2].to(gt_raw_trajectory.device)
 
         # Load segmentation data for collision evaluation
         seg_path = Path(args.seg_data_path) / f"{scene_data['token']}.pt"

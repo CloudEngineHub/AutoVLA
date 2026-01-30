@@ -512,12 +512,12 @@ class AutoVLA(torch.nn.Module):
 
         outputs_trimmed = outputs_trimmed[0][:-1].cpu() # remove end token
         cot_results = self.processor.decode(outputs_trimmed)
-        if 'Chain-of-Thought is not needed' not in self.processor.decode(outputs_trimmed):
-            print(self.processor.decode(outputs_trimmed))
-            print("has cot")
-        else:
-            print(self.processor.decode(outputs_trimmed))
-            print("no cot")
+        # if 'Chain-of-Thought is not needed' not in self.processor.decode(outputs_trimmed):
+        #     print(self.processor.decode(outputs_trimmed))
+        #     print("has cot")
+        # else:
+        #     print(self.processor.decode(outputs_trimmed))
+        #     print("no cot")
         actions_tokens = outputs_trimmed[outputs_trimmed >= self.action_start_id]
 
         trajectory = self.action_tokenizer.decode_token_ids_to_trajectory(actions_tokens)[0, 1:]

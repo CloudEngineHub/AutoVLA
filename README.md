@@ -136,11 +136,26 @@ You can revise your dataset path and GRPO parameters in the config file in `conf
 bash scripts/run_rft.sh
 ```
 
-### 5. Navsim Testing
-We leverage navsim and its Predictive Driver Model Score (PDMS) to test and evaluate our model. You need to set up the dataset path and split in the evaluation bash, and run the command to launch the testing.
+### 5. Evaluation
+#### nuPlan Evaluation (Navsim)
+We leverage navsim and its Predictive Driver Model Score (PDMS) to test and evaluate our model on nuPlan. You need to set up the dataset path and split in the evaluation bash, and run the command to launch the testing.
 ```bash
 bash navsim/scripts/evaluation/run_autovla_agent_pdm_score_evaluation.sh
 ```
+
+#### nuScenes Evaluation
+To evaluate the AutoVLA model on nuScenes validation data, you need to prepare the segmentation data for collision evaluation. Then run:
+```bash
+python tools/eval/nusc_eval.py \
+    --config config/training/qwen2.5-vl-3B-nusc-sft.yaml \
+    --checkpoint /path/to/checkpoint.ckpt \
+    --seg_data_path /path/to/nusc_eval_seg
+```
+| Argument | Description |
+|----------|-------------|
+| `--config` | Path to the config file |
+| `--checkpoint` | Path to the model checkpoint |
+| `--seg_data_path` | Path to the segmentation data directory |
 
 
 ## Citation

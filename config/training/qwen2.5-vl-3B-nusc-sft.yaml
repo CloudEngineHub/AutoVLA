@@ -36,10 +36,10 @@ training:
 
 data:
   train:
-      json_dataset_path: /data/tianhui/VLA//data/tianhui/VLA/nusc_drivelm_codeclean_train
+      json_dataset_path: /data/tianhui/VLA/nusc_drivelm_codeclean_train
       sensor_data_path: /data/dataset/nuscenes
   val:
-      json_dataset_path: /data/tianhui/VLA//data/tianhui/VLA/nusc_drivelm_codeclean_val
+      json_dataset_path: /data/tianhui/VLA/nusc_drivelm_codeclean_val
       sensor_data_path: /data/dataset/nuscenes
 
 

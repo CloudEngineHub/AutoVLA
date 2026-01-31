@@ -130,7 +130,14 @@ conda activate autovla
 ```
 
 ### 2. Action Codebook Creation
-<span style="color:red">[TBD]</span>
+The action codebook discretizes continuous vehicle trajectories into a finite vocabulary for autoregressive prediction. To create the codebook from your preprocessed data:
+```bash
+python tools/action_token/action_token_cluster.py \
+    --data_path /path/to/preprocessed/nuplan/data \
+    --output codebook_cache/agent_vocab.pkl \
+    --num_cluster 2048
+```
+This will generate a vocabulary file that maps trajectory segments to discrete tokens.
 
 ### 3. Supervised Fine-tuning (SFT)
 First revise the dataset path and SFT parameters in the config file in `config/training`. You can customize:

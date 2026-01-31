@@ -21,15 +21,15 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>�
 ![teaser](images/AutoVLA_framework.png)
 
 
-- 🚗 AutoVLA integrates **chain-of-thought (CoT) reasoning** and **physical action tokenization** to directly generate planning trajectories through a unified autoregressive process, dynamically switching dual-thinking modes.
-- ⚙️ **Supervised fine-tuning (SFT)** is employed to equip the model with dual thinking modes: fast thinking (trajectory-only) and slow thinking (enhanced with chain-of-thought reasoning). 
-- 🪜 **Reinforcement fine-tuning (RFT)** based on Group Relative Policy Optimization (GRPO) is adopted to further enhance planning performance and efficiency, reducing unnecessary reasoning in straightforward scenarios.
+- 🚗 AutoVLA integrates **chain-of-thought (CoT) reasoning** and **physical action tokenization** to directly generate planning trajectories through a unified autoregressive generative process, dynamically switching thinking modes.
+- ⚙️ **Supervised fine-tuning (SFT)** is employed to enable the model with dual thinking modes: fast thinking (trajectory-only) and slow thinking (enhanced with CoT reasoning). 
+- 🪜 **Reinforcement fine-tuning (RFT)** based on Group Relative Policy Optimization (GRPO) is adopted to enhance planning performance and runtime efficiency, reducing unnecessary reasoning in straightforward scenarios.
 - 🔥 Extensive experiments across real-world and simulated datasets and benchmarks, including **nuPlan**, **nuScenes**, **Waymo**, and **CARLA**, demonstrate its competitive performance in both open-loop and closed-loop settings. 
 
 ## News
 - **`2026/01`**: AutoVLA codebase is now released.
-- **`2025/09`**: [AutoVLA](https://arxiv.org/abs/2506.13757) is accepted by [NeurIPS 2025](https://neurips.cc/) 👏👏.
-- **`2025/06`**: [AutoVLA](https://arxiv.org/abs/2506.13757) paper release.
+- **`2025/09`**: AutoVLA is accepted by [NeurIPS 2025](https://neurips.cc/) 👏👏.
+- **`2025/06`**: AutoVLA paper release.
 - **`2025/05`**: In the [Waymo Vision-based End-to-end Driving Challenge](https://waymo.com/open/challenges/2025/e2e-driving/), AutoVLA ranks highly in both RFS Overall and achieves the top RFS Spotlight score, which focuses on the most challenging scenarios.
 
 <!-- ## Overview
@@ -39,10 +39,8 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>�
 
 ## Release Plan
 - **`2025/06`**: ✅ AutoVLA paper.
-- **`2025/12`**: ✅ Reasoning annotation code.
-- **`2026/01`**: ✅ AutoVLA SFT code.
-- **`2026/01`**: ✅ AutoVLA RFT code.
-- **`2026/02`**: AutoVLA checkpoints.
+- **`2026/01`**: ✅ AutoVLA annotation and training code.
+- **`2026/03`**: AutoVLA checkpoints.
 - **`TBD`** : Reasoning data (Pending approval from the data provider).
 
 ## Devkit Setup
@@ -55,7 +53,7 @@ bash navsim/download/download_trainval.sh
 bash navsim/download/download_test.sh
 ```
 #### Waymo E2E Dataset
-The waymo end-to-end driving dataset can be downloaded at [here](https://waymo.com/open/download/). 
+The Waymo end-to-end driving dataset can be downloaded at [here](https://waymo.com/open/download/). 
 
 #### nuScenes Dataset
 The nuScenes dataset can be downloaded from the official website: [https://www.nuscenes.org/](https://www.nuscenes.org/). You will need to register and download the `v1.0-trainval` split.
@@ -83,8 +81,9 @@ export NAVSIM_EXP_ROOT="$HOME/navsim_workspace/exp"
 export NAVSIM_DEVKIT_ROOT="$HOME/navsim_workspace/navsim"
 export OPENSCENE_DATA_ROOT="$HOME/navsim_workspace/dataset"
 ```
+
 ### 4. Pretrained Model Downloading
-We use the `Qwen2.5-VL` model series as the pretrained LLM in the vision-language-action model and chain-of-thought (CoT) annotation model. You can run the command to download the pretrained model.
+We use the `Qwen2.5-VL` model series as the pretrained VLM in the VLA model and CoT annotation model. You can run the command to download the pretrained model.
 ```bash
 bash scripts/download_qwen.sh
 ```
@@ -109,13 +108,13 @@ You can perform the following command to preprocess the Waymo E2E dataset. Pleas
 ```bash
 bash scripts/run_waymo_e2e_preprocessing.sh
 ```
-You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the waymo data after preprocessing.
+You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the Waymo data after preprocessing.
 #### nuScenes Dataset
 You can download the DriveLM nuScenes annotations (`v1_1_train_nus.json`) from [https://github.com/OpenDriveLab/DriveLM/tree/main/challenge](https://github.com/OpenDriveLab/DriveLM/tree/main/challenge).
 
-**Note:** NuScenes preprocessing requires `nuscenes-devkit`, which might have dependency conflicts with the main environment. We recommend using a separate conda environment:
+**Note:** nuScenes preprocessing requires `nuscenes-devkit`, which might have dependency conflicts with the main environment. We recommend using a separate conda environment:
 ```bash
-# Create separate environment for nuScenes preprocessing
+# Create a separate environment for nuScenes preprocessing
 conda env create -f environment_nusc_preprocess.yml
 conda activate nusc_preprocess
 
@@ -125,7 +124,7 @@ bash scripts/run_nuscenes_preprocessing.sh \
     --output_dir /path/to/output \
     --drivelm_path /path/to/drivelm/v1_1_train_nus.json
 
-# Switch back to main environment when done
+# Switch back to the main environment when done
 conda activate autovla
 ```
 
@@ -143,7 +142,7 @@ This will generate a vocabulary file that maps trajectory segments to discrete t
 First revise the dataset path and SFT parameters in the config file in `config/training`. You can customize:
 - `data.train.json_dataset_path`: Dataset paths for training (supports multiple datasets as a list)
 - `data.train.sensor_data_path`: Corresponding sensor data paths
-- `training.train_sample_size`: Set to a number to train on a random subset, or `null` for full dataset
+- `training.train_sample_size`: Set to a number to train on a random subset, or `null` for the full dataset
 - `model.use_cot`: Enable/disable chain-of-thought reasoning in training data
 
 Then, launch the SFT training:
@@ -152,16 +151,14 @@ python tools/run_sft.py --config training/qwen2.5-vl-3B-mix-sft
 ```
 
 ### 4. Reinforcement Fine-tuning (RFT)
-We introduce a reinforcement fine-tuning method based on Group Relative Policy Optimization (GRPO), reducing unnecessary reasoning in straightforward scenarios. 
-
-You can revise your dataset path and GRPO parameters in the config file in `config/training`. Then, perform the following command to run the reinforcement finetuning.
+You can revise your dataset path and GRPO parameters in the config file in `config/training`. Then, execute the following command to run reinforcement finetuning.
 ```bash
 bash scripts/run_rft.sh
 ```
 
 ### 5. Evaluation
 #### nuPlan Evaluation (Navsim)
-We leverage navsim and its Predictive Driver Model Score (PDMS) to test and evaluate our model on nuPlan. You need to set up the dataset path and split in the evaluation bash, and run the command to launch the testing.
+We leverage Navsim and its Predictive Driver Model Score (PDMS) to test and evaluate our model on nuPlan. You need to set up the dataset path and split in the evaluation bash, and run the command to launch the testing.
 ```bash
 bash navsim/scripts/evaluation/run_autovla_agent_pdm_score_evaluation.sh
 ```
@@ -184,6 +181,6 @@ If you find this repository useful for your research, please consider giving us 
 @article{zhou2025autovla,
   title={AutoVLA: A Vision-Language-Action Model for End-to-End Autonomous Driving with Adaptive Reasoning and Reinforcement Fine-Tuning},
   author={Zhou, Zewei and Cai, Tianhui and Zhao, Seth Z.and Zhang, Yun and Huang, Zhiyu and Zhou, Bolei and Ma, Jiaqi},
-  journal={arXiv preprint arXiv:2506.13757},
+  journal={Advances in Neural Information Processing Systems (NeurIPS)},
   year={2025}
 }

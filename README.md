@@ -167,7 +167,9 @@ bash navsim/scripts/evaluation/run_autovla_agent_pdm_score_evaluation.sh
 ```
 
 #### nuScenes Evaluation
-To evaluate the AutoVLA model on nuScenes validation data, you need to prepare the segmentation data for collision evaluation. Then run:
+To evaluate the AutoVLA model on nuScenes validation data, you need to prepare the segmentation data for collision evaluation. You can download the preprocessed segmentation data from [this link](https://drive.google.com/file/d/1YMiKqUi_rhdxdrNVXKFuwEg3xAGm-dvU/view?usp=sharing), which we preprocessed using code from [UniAD](https://github.com/OpenDriveLab/UniAD).
+
+Then run:
 ```bash
 python tools/eval/nusc_eval.py \
     --config config/training/qwen2.5-vl-3B-nusc-sft.yaml \

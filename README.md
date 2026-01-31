@@ -176,11 +176,6 @@ python tools/eval/nusc_eval.py \
     --checkpoint /path/to/checkpoint.ckpt \
     --seg_data_path /path/to/nusc_eval_seg
 ```
-| Argument | Description |
-|----------|-------------|
-| `--config` | Path to the config file |
-| `--checkpoint` | Path to the model checkpoint |
-| `--seg_data_path` | Path to the segmentation data directory |
 
 
 ## Citation

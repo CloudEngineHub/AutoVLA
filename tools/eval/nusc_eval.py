@@ -94,7 +94,8 @@ def main():
 
     # Evaluate each sample
     for idx in tqdm(range(sample_num), desc="Processing samples"):
-        scene_path = train_dataset.scenes[idx]
+        # scenes is a list of tuples: (scene_path, sensor_data_path)
+        scene_path, _ = train_dataset.scenes[idx]
         
         # Load scene data
         with open(scene_path, 'r') as f:

@@ -244,23 +244,21 @@ class AutoVLAAgentFeatureBuilder(AbstractFeatureBuilder):
         acceleration = scene_data['acceleration']
         gt_trajectory = scene_data['gt_trajectory']
         history_trajectory = scene_data['gt_trajectory']
+        dataset_name = scene_data['dataset_name']
 
         front_cam = scene_data['front_camera_paths']
-        front_left_cam = scene_data['front_left_camera_paths']
-        front_right_cam = scene_data['front_right_camera_paths']
-        back_camera = scene_data['back_camera_paths']
-        back_left_camera = scene_data['back_left_camera_paths']
-        back_right_camera = scene_data['back_right_camera_paths']
-        if 'left_camera_paths' in scene_data:
-            left_camera = scene_data['left_camera_paths']
+        back_camera = scene_data.get('back_camera_paths')
+        back_left_camera = scene_data.get('back_left_camera_paths')
+        back_right_camera = scene_data.get('back_right_camera_paths')
+        
+        # Normalize camera names across datasets
+        # NuPlan uses left/right_camera, others use front_left/right_camera
+        if dataset_name == 'nuplan':
+            front_left_cam = scene_data.get('left_camera_paths')
+            front_right_cam = scene_data.get('right_camera_paths')
         else:
-            left_camera = None
-        if 'right_camera_paths' in scene_data:
-            right_camera = scene_data['right_camera_paths']
-        else:
-            right_camera = None
-
-        dataset_name = scene_data['dataset_name']
+            front_left_cam = scene_data.get('front_left_camera_paths')
+            front_right_cam = scene_data.get('front_right_camera_paths')
 
         images = {
             "front_camera": front_cam,
@@ -269,8 +267,6 @@ class AutoVLAAgentFeatureBuilder(AbstractFeatureBuilder):
             "back_camera": back_camera,
             "back_left_camera": back_left_camera,
             "back_right_camera": back_right_camera,
-            "left_camera": left_camera,
-            "right_camera": right_camera
         }
 
         features = {

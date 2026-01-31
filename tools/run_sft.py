@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT / "navsim"))
+
 import yaml
 import torch
 import argparse
@@ -49,7 +57,7 @@ if __name__ == "__main__":
     using_cot = config['model']['use_cot']
     
 
-    train_dataset = SFTDataset(config['data']['val'], config['model'], processor, using_cot=using_cot)
+    train_dataset = SFTDataset(config['data']['train'], config['model'], processor, using_cot=using_cot)
         
     # Randomly sample from training set if train_sample_size is specified
     train_sample_size = config['training']['train_sample_size']

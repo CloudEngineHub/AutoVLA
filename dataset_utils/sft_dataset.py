@@ -17,13 +17,27 @@ IGNORE_INDEX = -100
 class SFTDataset(Dataset):
     def __init__(self, data_config, model_config, processor, using_cot=True):
         data_paths = data_config['json_dataset_path']
-        self.sensor_data_path = data_config['sensor_data_path']
+        sensor_data_paths = data_config['sensor_data_path']
 
         # Handle both single path (string/Path) and multiple paths (list)
         if isinstance(data_paths, (str, Path)):
             self.data_paths = [Path(data_paths)]
         else:
             self.data_paths = [Path(path) for path in data_paths]
+        
+        # Handle sensor_data_path - can be single value or list matching data_paths
+        if isinstance(sensor_data_paths, list):
+            self.sensor_data_paths = sensor_data_paths
+        else:
+            # Single value - use for all data paths
+            self.sensor_data_paths = [sensor_data_paths] * len(self.data_paths)
+        
+        # Validate lengths match
+        if len(self.sensor_data_paths) != len(self.data_paths):
+            raise ValueError(
+                f"Number of sensor_data_paths ({len(self.sensor_data_paths)}) must match "
+                f"number of json_dataset_paths ({len(self.data_paths)})"
+            )
             
         self.processor = processor
         self.action_tokenizer = ActionTokenizer(self.processor.tokenizer, model_config=model_config)
@@ -32,18 +46,21 @@ class SFTDataset(Dataset):
         
         trajectory_sampling = TrajectorySampling(time_horizon=model_config['trajectory']['time_horizon'], 
                                                 interval_length=model_config['trajectory']['interval_length'])
+        # Use first sensor_data_path for agent init (will be overridden per-scene)
         nuplan_agent = AutoVLAAgent(trajectory_sampling=trajectory_sampling,
-                                    sensor_data_path=self.sensor_data_path,
+                                    sensor_data_path=self.sensor_data_paths[0],
                                    codebook_cache_path=model_config['codebook_cache_path'],
                                    skip_model_load=True)
 
         self._agent = nuplan_agent
         
-        # Get all JSON files from all data paths
+        # Get all JSON files from all data paths, tracking which sensor_data_path to use
+        # Store as tuples: (scene_path, sensor_data_path)
         self.scenes = []
-        for data_path in self.data_paths:
+        for data_path, sensor_path in zip(self.data_paths, self.sensor_data_paths):
             path_scenes = sorted(list(data_path.glob('*.json')))
-            self.scenes.extend(path_scenes)
+            for scene in path_scenes:
+                self.scenes.append((scene, sensor_path))
             
         if not self.scenes:
             raise ValueError(f"No JSON files found in any of the provided data paths: {self.data_paths}")
@@ -59,7 +76,8 @@ class SFTDataset(Dataset):
         input_features: Dict[str, torch.Tensor] = {}
         target_trajectory: Dict[str, torch.Tensor] = {}
         
-        scene_path = self.scenes[idx]
+        # Unpack scene path and its corresponding sensor_data_path
+        scene_path, sensor_data_path = self.scenes[idx]
         with open(scene_path, 'r') as f:
             scene_data = json.load(f)
             
@@ -68,12 +86,15 @@ class SFTDataset(Dataset):
         for builder in self._agent.get_target_builders():
             target_trajectory.update(builder.compute_targets(scene_data))
         
+        # Override sensor_data_path with the correct one for this scene
+        input_features['sensor_data_path'] = sensor_data_path
+        
         # image sensor
         images = input_features['images']
         camera_images = {}
         
-        # List of all camera types
-        camera_types = ['front_camera', 'back_camera', 'front_left_camera', 'front_right_camera', 'left_camera', 'right_camera']
+        # List of camera types to load
+        camera_types = ['front_camera', 'front_left_camera', 'front_right_camera']
         
         if input_features['sensor_data_path']:
             for camera_type in camera_types:

@@ -533,31 +533,23 @@ class AutoVLA(torch.nn.Module):
 
         camera_images = {}
         
-        # List of all camera types
-        camera_types = ['front_camera', 'front_left_camera', 'front_right_camera', 'left_camera', 'right_camera']
-
-        # Load all camera images
+        # List of camera types to load
+        camera_types = ['front_camera', 'front_left_camera', 'front_right_camera']
+        
         if input_features['sensor_data_path']:
             for camera_type in camera_types:
-                if images[camera_type] is None:
-                    continue
                 camera_images[camera_type] = []
                 for i in range(4):
                     img = images[camera_type][i]
                     camera_images[camera_type].append(
                         os.path.join(input_features['sensor_data_path'], img))
-        
+
         # Assign to individual variables for message formatting
         front_camera_1, front_camera_2, front_camera_3, front_camera_4 = camera_images['front_camera']
-        if 'front_left_camera' in camera_images:
-            left_camera_1, left_camera_2, left_camera_3, left_camera_4 = camera_images['front_left_camera']
-        else:
-            left_camera_1, left_camera_2, left_camera_3, left_camera_4 = camera_images['left_camera']
-        if 'front_right_camera' in camera_images:
-            right_camera_1, right_camera_2, right_camera_3, right_camera_4 = camera_images['front_right_camera']
-        else:
-            right_camera_1, right_camera_2, right_camera_3, right_camera_4 = camera_images['right_camera']
-        
+        front_left_camera_1, front_left_camera_2, front_left_camera_3, front_left_camera_4 = camera_images['front_left_camera']
+        front_right_camera_1, front_right_camera_2, front_right_camera_3, front_right_camera_4 = camera_images['front_right_camera']
+
+
         # vehicle state
         velocity = input_features["vehicle_velocity"]
 
@@ -605,10 +597,10 @@ class AutoVLA(torch.nn.Module):
                 "min_pixels": min_pixels,
                 "max_pixels": max_pixels,
                 "video": [
-                    f"file://{left_camera_1}",
-                    f"file://{left_camera_2}",
-                    f"file://{left_camera_3}",
-                    f"file://{left_camera_4}",
+                    f"file://{front_left_camera_1}",
+                    f"file://{front_left_camera_2}",
+                    f"file://{front_left_camera_3}",
+                    f"file://{front_left_camera_4}",
                 ]
             },
             {
@@ -620,10 +612,10 @@ class AutoVLA(torch.nn.Module):
                 "min_pixels": min_pixels,
                 "max_pixels": max_pixels,
                 "video": [
-                    f"file://{right_camera_1}",
-                    f"file://{right_camera_2}",
-                    f"file://{right_camera_3}",
-                    f"file://{right_camera_4}",
+                    f"file://{front_right_camera_1}",
+                    f"file://{front_right_camera_2}",
+                    f"file://{front_right_camera_3}",
+                    f"file://{front_right_camera_4}",
                 ]
             },
             {

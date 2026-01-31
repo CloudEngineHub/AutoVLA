@@ -111,21 +111,37 @@ bash scripts/run_waymo_e2e_preprocessing.sh
 ```
 You can use `waymo_e2e_traj_project_visualization.py` and `waymo_e2e_visualization.py` in the `tools/visualization` folder to visualize the waymo data after preprocessing.
 #### nuScenes Dataset
-You can download the DriveLM nuScenes annotations (`v1_1_train_nus.json`) from [https://github.com/OpenDriveLab/DriveLM/tree/main/challenge](https://github.com/OpenDriveLab/DriveLM/tree/main/challenge). Then run the following command to preprocess the nuScenes dataset:
+You can download the DriveLM nuScenes annotations (`v1_1_train_nus.json`) from [https://github.com/OpenDriveLab/DriveLM/tree/main/challenge](https://github.com/OpenDriveLab/DriveLM/tree/main/challenge).
+
+**Note:** NuScenes preprocessing requires `nuscenes-devkit`, which might have dependency conflicts with the main environment. We recommend using a separate conda environment:
 ```bash
+# Create separate environment for nuScenes preprocessing
+conda env create -f environment_nusc_preprocess.yml
+conda activate nusc_preprocess
+
+# Run preprocessing
 bash scripts/run_nuscenes_preprocessing.sh \
     --nuscenes_path /path/to/nuscenes \
     --output_dir /path/to/output \
     --drivelm_path /path/to/drivelm/v1_1_train_nus.json
+
+# Switch back to main environment when done
+conda activate autovla
 ```
 
 ### 2. Action Codebook Creation
 <span style="color:red">[TBD]</span>
 
 ### 3. Supervised Fine-tuning (SFT)
-First revise the dataset path and SFT parameters in the config file in `config/training`. Then, launch the sft training with the command.
+First revise the dataset path and SFT parameters in the config file in `config/training`. You can customize:
+- `data.train.json_dataset_path`: Dataset paths for training (supports multiple datasets as a list)
+- `data.train.sensor_data_path`: Corresponding sensor data paths
+- `training.train_sample_size`: Set to a number to train on a random subset, or `null` for full dataset
+- `model.use_cot`: Enable/disable chain-of-thought reasoning in training data
+
+Then, launch the SFT training:
 ```bash
-bash scripts/run_sft.sh
+python tools/run_sft.py --config training/qwen2.5-vl-3B-mix-sft
 ```
 
 ### 4. Reinforcement Fine-tuning (RFT)

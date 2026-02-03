@@ -114,20 +114,10 @@ if __name__ == "__main__":
     # TODO: remove this hard coding
     print(f"Loading and remapping checkpoint from: {config['model']['sft_model_path']}")
     full_checkpoint = torch.load(config['model']['sft_model_path'], map_location="cpu")
-    old_sd = full_checkpoint['state_dict']
+    sd = full_checkpoint['state_dict']
     
-    # Create new state dict with updated keys
-    new_sd = {}
-    for k, v in old_sd.items():
-        # Handle the rename from drivevla to autovla
-        new_key = k.replace("drivevla.", "autovla.")
-        new_sd[new_key] = v
-
-    # Load the remapped state dict
-    msg = model.load_state_dict(new_sd, strict=False)
-    # print(f"Checkpoint loaded with message: {msg}")
-
-
+    # Load the state dict
+    msg = model.load_state_dict(sd, strict=False)
 
     # Create a LoRA configuration. Adjust the parameters (r, lora_alpha, lora_dropout) as needed.
     if config['model']['lora'].get("use", False):

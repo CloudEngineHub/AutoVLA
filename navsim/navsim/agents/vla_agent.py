@@ -30,7 +30,7 @@ from navsim.agents.utils import (
 
 
 class VlaAgentFeatureBuilder(AbstractFeatureBuilder):
-    """Input feature builder of DriveVLA Agent."""
+    """Input feature builder of AutoVLA Agent."""
 
     def __init__(self):
         """Initializes the feature builder."""
@@ -92,7 +92,7 @@ class VlaAgentFeatureBuilder(AbstractFeatureBuilder):
 
 
 class TrajectoryTargetBuilder(AbstractTargetBuilder):
-    """Input feature builder of DriveVLA Agent."""
+    """Input feature builder of AutoVLA Agent."""
 
     def __init__(self, trajectory_sampling: TrajectorySampling):
         """
@@ -113,7 +113,7 @@ class TrajectoryTargetBuilder(AbstractTargetBuilder):
 
 
 class VlaAgent(AbstractAgent):
-    """DriveVLA Agent interface."""
+    """AutoVLA Agent interface."""
 
     def __init__(
         self,

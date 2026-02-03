@@ -1,10 +1,10 @@
 name: qwen2.5-vl-3B-nuplan-grpo
-description: DriveVLA based on Qwen 2.5 VL 3B model GRPO fine-tuning on NuPlan dataset
+description: AutoVLA based on Qwen 2.5 VL 3B model GRPO fine-tuning on NuPlan dataset
 
 model:
   use_cot: true
-  pretrained_model_path: /data/tianhui/Qwen/Qwen2.5-VL-3B-Instruct
-  sft_model_path: /data/zewei/DriveVLA_RLFT/sft_checkpoints/cot0/epoch3-loss0.5807.ckpt
+  pretrained_model_path: /data/AutoVLA/Qwen2.5-VL-3B-Instruct
+  sft_model_path: /data/AutoVLA/sft_checkpoints/cot0/epoch3-loss0.5807.ckpt
   codebook_cache_path: "codebook_cache/agent_vocab.pkl"
   train_vision_backbone: false
   train_lm_backbone: true
@@ -30,17 +30,17 @@ model:
 
 data:
   train:
-    path: /data/zewei/DriveVLA/nuplan/placeholder/test
-    scene_filter: /data/zewei/DriveVLA_RLFT/navsim/navsim/planning/script/config/common/train_test_split/scene_filter/navtest.yaml
+    path: /data/AutoVLA/nuplan/placeholder/test
+    scene_filter: /data/AutoVLA/navsim/navsim/planning/script/config/common/train_test_split/scene_filter/navtest.yaml
     metric_cache_path: /data/dataset/navtest_metric_cache
     json_dataset_path: /data/dataset/nuplan/navtest_nocot
-    sensor_data_path: /data/zewei/DriveVLA/nuplan/sensor_blobs/test
+    sensor_data_path: /data/AutoVLA/nuplan/sensor_blobs/test
   val:
-    path: /data/zewei/DriveVLA/nuplan/placeholder/test
-    scene_filter: /data/zewei/DriveVLA_RLFT/navsim/navsim/planning/script/config/common/train_test_split/scene_filter/navtest.yaml
+    path: /data/AutoVLA/nuplan/placeholder/test
+    scene_filter: /data/AutoVLA/navsim/navsim/planning/script/config/common/train_test_split/scene_filter/navtest.yaml
     metric_cache_path: /data/dataset/navtest_metric_cache
     json_dataset_path: /data/dataset/nuplan/navtest_nocot
-    sensor_data_path: /data/zewei/DriveVLA/nuplan/sensor_blobs/test
+    sensor_data_path: /data/AutoVLA/nuplan/sensor_blobs/test
 
 training:
   batch_size: 1

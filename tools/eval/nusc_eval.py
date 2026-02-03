@@ -74,8 +74,6 @@ def main():
     model.autovla.vlm.resize_token_embeddings(len(processor.tokenizer))
     
     state_dict = torch.load(checkpoint_path, map_location=args.device)['state_dict']
-    # Remove the prefix "autovla." or "drivevla." from the keys
-    state_dict = {k.replace("autovla.", "").replace("drivevla.", ""): v for k, v in state_dict.items()}
     model.autovla.load_state_dict(state_dict, strict=False)
 
     model.to(args.device)

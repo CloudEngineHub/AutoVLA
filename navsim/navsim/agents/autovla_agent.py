@@ -386,7 +386,7 @@ class AutoVLAAgent(AbstractAgent):
         
         state_dict: Dict[str, Any] = torch.load(self._checkpoint_path, 
                                                 map_location=self.autovla.device)["state_dict"]
-        self.autovla.load_state_dict( {k.replace("autovla.", "").replace("drivevla.", ""): v for k, v in state_dict.items()}, strict=False)
+        self.autovla.load_state_dict( {k.replace("autovla.", ""): v for k, v in state_dict.items()}, strict=False)
 
     def name(self) -> str:
         """Inherited, see superclass."""

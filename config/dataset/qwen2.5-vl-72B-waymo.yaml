@@ -2,7 +2,7 @@ name: qwen2.5-vl-72B-waymo
 description: Preprocessing dataset for AutoVLA with Qwen 2.5 VL 72B model on Waymo E2R dataset for CoT generation
 
 # model
-pretrained_model_path: /data/zewei/DriveVLA/Qwen2.5-VL-72B-Instruct-AWQ
+pretrained_model_path: /data/AutoVLA/Qwen2.5-VL-72B-Instruct-AWQ
 
 # training
 batch_size: 1
@@ -11,7 +11,7 @@ num_workers: 32
 # dataset 
 dataset_name: waymo
 dataset_split: training # [training, val, test]
-dataset_path: /data3/dataset/waymo_open_dataset_end_to_end_camera_v_1_0_1
+dataset_path: /data/dataset/waymo_open_dataset_end_to_end_camera_v_1_0_1
 
 # data frequency
 raw_images_freq: 10

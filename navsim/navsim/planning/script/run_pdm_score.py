@@ -28,9 +28,6 @@ from navsim.planning.simulation.planner.pdm_planner.scoring.pdm_scorer import PD
 from navsim.planning.metric_caching.metric_cache import MetricCache
 from navsim.visualization.plots import plot_cameras_frame_with_bev_agent
 
-import sys
-sys.path.append("/data2/zewei/DriveVLA_RLFT")
-
 logger = logging.getLogger(__name__)
 
 CONFIG_PATH = "config/pdm_scoring"

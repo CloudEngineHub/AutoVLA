@@ -5,7 +5,7 @@ description: AutoVLA based on Qwen 2.5 VL 3B model fine-tuned on NuPlan dataset 
 # model
 model:
   use_cot: false
-  pretrained_model_path: /data/tianhui/Qwen/Qwen2.5-VL-3B-Instruct
+  pretrained_model_path: /data/AutoVLA/Qwen2.5-VL-3B-Instruct
   train_vision_backbone: false
   train_lm_backbone: true
   codebook_cache_path: "codebook_cache/agent_vocab.pkl"
@@ -36,11 +36,11 @@ training:
 
 data:
   train:
-      json_dataset_path: /data/tianhui/VLA/nusc_drivelm_codeclean_train
+      json_dataset_path: /data/AutoVLA/nusc_drivelm_codeclean_train
       sensor_data_path: /data/dataset/nuscenes
 
   val:
-      json_dataset_path: /data/tianhui/VLA/nusc_drivelm_codeclean_val
+      json_dataset_path: /data/AutoVLA/nusc_drivelm_codeclean_val
       sensor_data_path: /data/dataset/nuscenes
 
 

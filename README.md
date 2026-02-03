@@ -27,7 +27,7 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>�
 - 🔥 Extensive experiments across real-world and simulated datasets and benchmarks, including **nuPlan**, **nuScenes**, **Waymo**, and **CARLA**, demonstrate its competitive performance in both open-loop and closed-loop settings. 
 
 ## News
-- **`2026/01`**: AutoVLA codebase is now released.
+- **`2026/02`**: AutoVLA codebase is now released.
 - **`2025/09`**: AutoVLA is accepted by [NeurIPS 2025](https://neurips.cc/) 👏👏.
 - **`2025/06`**: AutoVLA paper release.
 - **`2025/05`**: In the [Waymo Vision-based End-to-end Driving Challenge](https://waymo.com/open/challenges/2025/e2e-driving/), AutoVLA ranks highly in both RFS Overall and achieves the top RFS Spotlight score, which focuses on the most challenging scenarios.
@@ -39,7 +39,7 @@ University of California, Los Angeles | <sup>*</sup> Equal contribution, <sup>�
 
 ## Release Plan
 - **`2025/06`**: ✅ AutoVLA paper.
-- **`2026/01`**: ✅ AutoVLA annotation and training code.
+- **`2026/02`**: ✅ AutoVLA annotation and training code.
 - **`2026/03`**: AutoVLA checkpoints.
 - **`TBD`** : Reasoning data (Pending approval from the data provider).
 
